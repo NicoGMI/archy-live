@@ -1,0 +1,14 @@
+#!/bin/sh
+# Republie l'app (données incluses) sur Cloudflare Pages. Les visiteurs voient le changement au prochain refresh (5 s).
+# Prérequis (une fois Cloudflare débloqué) : CLOUDFLARE_API_TOKEN (Pages:Edit) + CLOUDFLARE_ACCOUNT_ID, ou `npx wrangler login`.
+# Options : --dry (construit et vérifie sans déployer)
+set -e
+# Définis CLOUDFLARE_API_TOKEN et CLOUDFLARE_ACCOUNT_ID dans ton environnement (jamais dans le dépôt).
+cd "$(dirname "$0")/.."
+node -e "const d=JSON.parse(require('fs').readFileSync('public/data/archy-status.json'));if(!d.tasks||!d.universes||!d.log)throw new Error('JSON invalide')"
+npm run build >/dev/null
+cmp -s public/data/archy-status.json dist/data/archy-status.json || { echo "dist désynchronisé"; exit 1; }
+if [ "$1" = "--dry" ]; then echo "dry-run OK (build + JSON valide, rien déployé)"; exit 0; fi
+[ -f .publish-project ] && P="$(cat .publish-project)" || P=archy-live
+npx wrangler pages deploy dist --project-name "$P" --branch main --commit-dirty=true
+echo "publié $(date -Iseconds)"
