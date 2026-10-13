@@ -1,0 +1,13 @@
+#!/bin/sh
+# Publie les DONNÉES seules. Si un endpoint /api/status est configuré (jeton d'écriture + URL), envoi direct (~1 s, sans build).
+# Sinon : redéploiement complet via bin/publish.
+cd "$(dirname "$0")/.." || exit 1
+TOKEN="${ARCHY_WRITE_TOKEN:-$( [ -f "$HOME/.archy_write_token" ] && cat "$HOME/.archy_write_token" )}"
+URL="${ARCHY_URL:-$( [ -f .publish-url ] && cat .publish-url )}"
+DATA="${ARCHY_DATA:-public/data/archy-status.json}"
+if [ -n "$TOKEN" ] && [ -n "$URL" ]; then
+  code=$(curl -s -o /dev/null -w '%{http_code}' -X POST --max-time 20 -H "Authorization: Bearer $TOKEN" -H 'content-type: application/json' --data-binary @"$DATA" "${URL%/}/api/status")
+  if [ "$code" = "200" ]; then echo "données publiées ($code)"; exit 0; fi
+  echo "endpoint /api/status : HTTP $code" >&2; exit 1
+fi
+exec sh bin/publish "$@"

@@ -3,5 +3,9 @@ dist
 .wrangler
 .publish-enabled
 .publish-project
+.publish-url
 .env
 .cf_*
+.update.lock
+*.tmp
+public/data/archy-status.json

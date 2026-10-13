@@ -1,3 +1,4 @@
 #!/bin/sh
-# Une ligne : bin/archy start|done|note|wait|block|sched|queue <id> ...   (ex: bin/archy done web-refonte "5 élèves OK, 2 bugs")
-cd "$(dirname "$0")/.." && node scripts/update.mjs "$@"
+# Mise à jour des données en une ligne. Exemple : bin/archy done mon-projet "terminé, 2 bugs restants"
+# Aide : bin/archy help
+exec node "$(dirname "$0")/../scripts/update.mjs" "$@"

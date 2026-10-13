@@ -1,9 +1,11 @@
 import React,{useMemo,useState} from 'react'
-import {useData,Toggle,SC,LB,ORD,fmt,hm,dayKey,ago} from './shared.jsx'
+import {useData,Toggle,SC,LB,fmt,hm,dayKey,ago} from './shared.jsx'
+import {CONFIG} from './config.js'
+const Sec=({title,n,children,accent})=>n===0?null:<section className="sec"><h3 style={accent?{color:accent}:null}>{title}<span>{n}</span></h3>{children}</section>
 function Task({t,d,now,u,open,toggle}){
   const lg=d.log.filter(l=>l.task===t.id)
   const when=t.status==='done'?`terminé ${fmt(t.doneAt)}`:t.status==='scheduled'?`prévu ${fmt(t.scheduledAt)}`:t.status==='active'&&t.startedAt?`depuis ${ago(t.startedAt,now)}`:''
-  return <div className={'trow '+t.status} onClick={toggle}>
+  return <div className={'trow '+t.status} role="button" tabIndex={0} aria-expanded={open} onClick={toggle} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}}}>
     <span className="bar" style={{background:SC[t.status]}}/>
     <div className="tmain">
       <div className="ttl"><span className="uni" style={{color:u?.color}}>{u?.name}</span>{t.status==='active'&&<i className="pulse"/>}<b>{t.title}</b></div>
@@ -24,16 +26,15 @@ export default function Dashboard(){
   const need=[...by('blocked'),...by('waiting')]
   const sched=by('scheduled').sort((a,b)=>new Date(a.scheduledAt)-new Date(b.scheduledAt))
   const done=by('done').sort((a,b)=>new Date(b.doneAt)-new Date(a.doneAt))
-  const feed=d.log.filter(l=>!uf||d.tasks.find(t=>t.id===l.task)?.universe===uf)
+  const feed=[...d.log].sort((a,b)=>new Date(b.at)-new Date(a.at)).filter(l=>!uf||d.tasks.find(t=>t.id===l.task)?.universe===uf)
   const groups=[];feed.slice(0,showAll?200:25).forEach(l=>{const k=dayKey(l.at);let g=groups.find(x=>x.k===k);if(!g)groups.push(g={k,items:[]});g.items.push(l)})
   const dl=k=>k===today?"Aujourd'hui":new Date(k+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})
-  const Sec=({title,n,children,accent})=>n===0?null:<section className="sec"><h3 style={accent?{color:accent}:null}>{title}<span>{n}</span></h3>{children}</section>
   return <div className="dash">
-    <header><div><h1>Archy</h1><div className="sub"><span className={'live '+(err?'off':'')}><i className={err?'':'pulse'}/>{err?'connexion perdue':'live'}</span>
+    <header><div><h1>{CONFIG.title}</h1><div className="sub"><span className={'live '+(err?'off':'')}><i className={err?'':'pulse'}/>{err?'connexion perdue':'live'}</span>
       <span>mis à jour {ago(d.updatedAt,now)}</span></div></div><Toggle view="dash"/></header>
     {(err||stale)&&<div className="warn">{err?`Impossible de rafraîchir (dernières données reçues il y a ${okAt?ago(new Date(okAt).toISOString(),now):'?'}).`:`Aucune mise à jour depuis plus de 3 h : les statuts peuvent être périmés.`}</div>}
     <div className="kpis">
-      {[['En cours',k('active'),SC.active],['Attendent le boss',k('waiting')+k('blocked'),SC.waiting],['Programmés',k('scheduled'),SC.scheduled],["Terminés aujourd'hui",doneToday,'#a3a3a3']].map(([l,n,c])=><div key={l} className="kpi"><b style={{color:c}}>{n}</b><span>{l}</span></div>)}</div>
+      {[['En cours',k('active'),SC.active],['Attendent '+CONFIG.boss,k('waiting')+k('blocked'),SC.waiting],['Programmés',k('scheduled'),SC.scheduled],["Terminés aujourd'hui",doneToday,'#a3a3a3']].map(([l,n,c])=><div key={l} className="kpi"><b style={{color:c}}>{n}</b><span>{l}</span></div>)}</div>
     <div className="unis">{d.universes.map(u=>{const ts=d.tasks.filter(t=>t.universe===u.id);if(!ts.length)return null;const n=s=>ts.filter(t=>t.status===s).length
       return <button key={u.id} className={'ucard '+(uf===u.id?'sel':'')} style={{'--c':u.color}} onClick={()=>setUf(uf===u.id?null:u.id)}>
         <div className="un"><i style={{background:u.color}}/>{u.name}{n('active')>0&&<em className="pulse"/>}</div>
@@ -41,7 +42,7 @@ export default function Dashboard(){
         <div className="uc">{n('active')} en cours · {n('waiting')+n('blocked')} attente · {n('done')} finis</div></button>})}</div>
     {uf&&<div className="filter">Filtre : <b>{U[uf].name}</b> <button onClick={()=>setUf(null)}>Tout afficher</button></div>}
     <div className="cols"><div className="colmain">
-      <Sec title="À décider / en attente du boss" n={need.length} accent={SC.waiting}>{need.map(row)}</Sec>
+      <Sec title={"À décider / en attente "+CONFIG.bossOf} n={need.length} accent={SC.waiting}>{need.map(row)}</Sec>
       <Sec title="En cours" n={by('active').length} accent={SC.active}>{by('active').map(row)}</Sec>
       <Sec title="Programmé" n={sched.length} accent={SC.scheduled}>{sched.map(row)}</Sec>
       <Sec title="En file" n={by('queued').length}>{by('queued').map(row)}</Sec>

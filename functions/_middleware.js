@@ -8,6 +8,8 @@ const page = (msg = '') => new Response(`<!doctype html><html lang="fr"><head><m
 <body><form method="post"><h1>Archy</h1><input type="password" name="pw" placeholder="Mot de passe" autofocus autocomplete="current-password"><button>Entrer</button><p>${msg}</p></form></body></html>`,
   { status: msg ? 401 : 200, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-robots-tag': 'noindex' } })
 export async function onRequest({ request, env, next }) {
+  // L'écriture des données passe par le jeton Bearer vérifié dans functions/api/status.js (pas de cookie pour la CLI).
+  if (request.method === 'POST' && new URL(request.url).pathname === '/api/status') return next()
   const pw = env.ARCHY_PASSWORD
   if (!pw) return new Response('Configuration manquante', { status: 503, headers: { 'cache-control': 'no-store' } })
   const token = await sha('archy-live-v1|' + pw)
@@ -18,7 +20,7 @@ export async function onRequest({ request, env, next }) {
     await new Promise((r) => setTimeout(r, 800))
     if (f && safeEq(await sha('archy-live-v1|' + String(f.get('pw') || '')), token)) {
       const u = new URL(request.url)
-      return new Response(null, { status: 303, headers: { location: u.pathname + u.search, 'set-cookie': `${COOKIE}=${token}; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Strict`, 'cache-control': 'no-store' } })
+      return new Response(null, { status: 303, headers: { location: '/' + u.pathname.replace(/^\/+/, '') + u.search, 'set-cookie': `${COOKIE}=${token}; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Strict`, 'cache-control': 'no-store' } })
     }
     return page('Mot de passe incorrect')
   }

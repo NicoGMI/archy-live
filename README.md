@@ -1,44 +1,58 @@
 # Archy Live - dashboard + carte de village en temps réel
 
 Une app web statique (Vite + React + Three.js) qui montre l'activité d'un assistant ou d'une équipe :
-- **Carte** (vue par défaut) : un village, une maison par "univers" (projet), un personnage qui marche = tâche en cours, un PNJ "..." = en attente de toi, ⏱ = programmé, coche = terminé. Au centre, le bureau du boss : les personnages font des allers-retours maison <> bureau. Touche une maison ou un personnage pour ouvrir le détail.
+- **Carte** (vue par défaut) : un village, une maison par univers (projet, place fixe), un personnage qui marche = tâche en cours, un PNJ "..." = en attente, ✕ = bloqué, ⏱ = programmé, coche = terminé. Au centre, le bureau du boss : les personnages font des allers-retours maison <> bureau. Touche une maison ou un personnage pour le détail.
 - **Dashboard** (`#dash` ou bouton en haut à droite) : compteurs, avancement par univers, tâches à décider, journal horodaté.
-Les deux lisent le même fichier, rechargé toutes les 5 s (pas de rebuild nécessaire).
+
+Les deux vues lisent les mêmes données, rafraîchies toutes les 20 s (en pause quand l'onglet est caché).
 
 ## Démarrer
-(Si `bin/archy` ou `bin/publish` ne se lancent pas : `chmod +x bin/*`.)
-
 ```
 npm install
+cp public/data/archy-status.example.json public/data/archy-status.json   # tes données (ignorées par git)
 npm run dev        # http://localhost:5173
+npm test           # tests de la CLI
 npm run build      # produit dist/
 ```
+Le vrai fichier `public/data/archy-status.json` n'est jamais versionné (voir `.gitignore`) : seul l'exemple l'est.
 
-## Adapter à ton usage : un seul fichier, `public/data/archy-status.json`
-- `universes` : tes projets. `{ "id": "site", "name": "Mon Site", "emoji": "🌐", "color": "#f59e0b" }`. Une maison est créée pour chaque univers qui a au moins une tâche (8 maisons max, voir `SLOTS` dans `src/MapView.jsx`).
-- `tasks` : `{ "id", "universe", "title", "status", "note", "startedAt", "doneAt", "scheduledAt" }`.
-  Statuts : `active` (point vert + personnage qui marche), `waiting` (attend ta réponse), `scheduled` (date dans `scheduledAt`), `blocked`, `queued`, `done` (coche + horodatage `doneAt`).
-- `log` : `{ "at", "task", "text" }`, les plus récents d'abord ou dans l'ordre, affichés dans le Dashboard. Dates en ISO 8601 avec fuseau (ex. `2026-01-15T10:00:00+01:00`).
+## Les données : `public/data/archy-status.json`
+- `universes` : tes projets. `{ "id": "site", "name": "Mon Site", "emoji": "🌐", "color": "#f59e0b" }`. Une maison par univers qui a au moins une tâche. 8 places sur la carte, dans l'ordre de la liste (les suivants sont signalés par un badge "+N univers non affichés").
+- `tasks` : `{ "id", "universe", "title", "status", "note", "startedAt", "doneAt", "scheduledAt" }`. Statuts : `active`, `waiting`, `scheduled`, `blocked`, `queued`, `done`. Les 6 premières tâches (actives d'abord) ont une fenêtre sur leur maison.
+- `log` : `{ "at", "task", "text" }`. Le plus récent d'abord, 300 entrées max. Dates en ISO 8601 avec fuseau.
 
-### Mettre à jour en ligne de commande (écriture atomique + validation)
+### CLI (écriture atomique, verrou, validation)
 ```
-bin/archy start <id> <univers> "Titre" "note"
+bin/archy start <id> <univers> "Titre" ["note"]
 bin/archy note <id> "note"
-bin/archy done <id> "note"
-bin/archy wait <id> <univers> "Titre" "ce qu'on attend"
+bin/archy done <id> ["note"]
+bin/archy wait <id> [<univers> "Titre"] "ce qu'on attend"
 bin/archy block <id> "raison"
-bin/archy sched <id> <univers> "Titre" 2026-01-16T18:00:00+01:00 "note"
-bin/archy queue <id> <univers> "Titre"
+bin/archy sched <id> <univers> "Titre" <date ISO> ["note"]
+bin/archy queue <id> <univers> "Titre" ["note"]
+bin/archy archive [jours]      # retire les tâches terminées depuis plus de N jours (7 par défaut)
+bin/archy help
 ```
-Ton assistant ou tes scripts peuvent appeler ces commandes (ou éditer le JSON directement).
+(`sh bin/archy ...` si le bit exécutable manque.) Un assistant ou un script peut l'appeler tel quel.
 
 ### Personnaliser
-- Textes ("Attend le boss", légende, etc.) : `src/shared.jsx`, `src/Dashboard.jsx`, `src/MapView.jsx`.
-- Ambiance de la carte (ciel, lumière, couleurs) : début de `useEffect` dans `src/MapView.jsx` (dégradé du ciel, `HemisphereLight`, `DirectionalLight`, couleurs du terrain).
-- Plaque du bureau central : cherche `'ARCHY'` dans `src/MapView.jsx`.
+- Titre, fuseau horaire, langue, formulations ("Attend le boss"), rythme de rafraîchissement : `src/config.js`.
+- Ambiance de la carte (ciel, lumière, couleurs) : début de l'effet dans `src/MapView.jsx`.
 
-## Héberger (optionnel, gratuit sur Cloudflare Pages)
-1. Compte Cloudflare gratuit, jeton API avec la permission *Pages: Edit*.
-2. `export CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ACCOUNT_ID=...` (ne jamais les mettre dans le dépôt), puis `bin/publish` (option `--dry` pour tester). Le nom du projet est dans `.publish-project` (créer le fichier, sinon `archy-live`) : `npx wrangler pages project create <nom>` une première fois.
-3. Protection par mot de passe : `functions/_middleware.js` demande un mot de passe lu dans le secret `ARCHY_PASSWORD` du projet Pages (Settings > Variables and secrets > Secret), puis redéployer. Sans ce secret, le site répond 503 (rien n'est exposé). Supprime le dossier `functions/` si tu veux un site public.
-4. Auto-publication : `touch .publish-enabled` => chaque `bin/archy ...` republie. 
+## Héberger gratuitement sur Cloudflare Pages (optionnel)
+Tout est dans le plan gratuit. Ne saisis jamais de secret dans le dépôt.
+
+1. **Projet Pages** : compte Cloudflare, jeton API *Pages: Edit*, puis
+   `export CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ACCOUNT_ID=...` (ou fichiers `~/.cf_token`, `~/.cf_account`, hors dépôt),
+   `npx wrangler pages project create archy-live --production-branch main`, puis `bin/publish` (option `--dry` pour tester).
+   Le nom du projet est lu dans `.publish-project` s'il existe.
+2. **Mot de passe** : `functions/_middleware.js` protège tout le site avec le secret Pages `ARCHY_PASSWORD` (Settings > Variables and secrets > Secret, puis redéployer). Sans secret : le site répond 503. Supprime `functions/` pour un site public.
+3. **Données en direct, sans redéployer** (recommandé) : un endpoint `/api/status` stocké dans un KV.
+   - Dashboard Cloudflare > Workers KV > créer un namespace (ex. `archy-live-status`).
+   - Pages > ton projet > Settings > Bindings > KV namespace : variable `ARCHY`, ce namespace.
+   - Ajoute un secret `ARCHY_WRITE_TOKEN` (une longue valeur aléatoire) et redéploie (`bin/publish`).
+   - Côté machine qui exécute la CLI : `echo https://ton-projet.pages.dev > .publish-url` et mets le même jeton dans `~/.archy_write_token` (ou la variable `ARCHY_WRITE_TOKEN`).
+   - `touch .publish-enabled` : chaque `bin/archy ...` envoie alors les données en ~1 s (`bin/publish-data`). Sans endpoint configuré, `bin/publish-data` retombe sur un redéploiement complet.
+   - Limites du plan gratuit (au moment de l'écriture) : 1 000 écritures KV et 100 000 lectures par jour, 100 000 requêtes Functions par jour. Un onglet ouvert toute la journée fait environ 4 300 requêtes. Dépasser une limite fait échouer les appels, sans facturation.
+   - Délai : une mise à jour est visible en général sous 30 s (propagation KV jusqu'à ~1 min, plus le rafraîchissement de 20 s).
+   - Sans KV, l'app lit simplement `/data/archy-status.json` (redéploiement nécessaire pour changer les données).

@@ -1,10 +1,13 @@
 #!/bin/sh
-# Republie l'app (données incluses) sur Cloudflare Pages. Les visiteurs voient le changement au prochain refresh (5 s).
-# Prérequis (une fois Cloudflare débloqué) : CLOUDFLARE_API_TOKEN (Pages:Edit) + CLOUDFLARE_ACCOUNT_ID, ou `npx wrangler login`.
+# Republie l'app complète (build + déploiement Cloudflare Pages). Pour les seules données, voir bin/publish-data.
+# Prérequis : CLOUDFLARE_API_TOKEN (Pages: Edit) + CLOUDFLARE_ACCOUNT_ID dans l'environnement, ou `npx wrangler login`.
+# Les valeurs peuvent aussi être lues dans ~/.cf_token et ~/.cf_account (hors dépôt).
 # Options : --dry (construit et vérifie sans déployer)
 set -e
-# Définis CLOUDFLARE_API_TOKEN et CLOUDFLARE_ACCOUNT_ID dans ton environnement (jamais dans le dépôt).
+[ -z "$CLOUDFLARE_API_TOKEN" ] && [ -f "$HOME/.cf_token" ] && export CLOUDFLARE_API_TOKEN="$(cat "$HOME/.cf_token")"
+[ -z "$CLOUDFLARE_ACCOUNT_ID" ] && [ -f "$HOME/.cf_account" ] && export CLOUDFLARE_ACCOUNT_ID="$(cat "$HOME/.cf_account")"
 cd "$(dirname "$0")/.."
+[ -f public/data/archy-status.json ] || cp public/data/archy-status.example.json public/data/archy-status.json
 node -e "const d=JSON.parse(require('fs').readFileSync('public/data/archy-status.json'));if(!d.tasks||!d.universes||!d.log)throw new Error('JSON invalide')"
 npm run build >/dev/null
 cmp -s public/data/archy-status.json dist/data/archy-status.json || { echo "dist désynchronisé"; exit 1; }
