@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "updatedAt": "2026-01-15T10:00:00+01:00",
+  "universes": [
+    {"id":"site","name":"Mon Site","emoji":"🌐","color":"#f59e0b"},
+    {"id":"app","name":"Appli Mobile","emoji":"📱","color":"#8b5cf6"},
+    {"id":"mails","name":"Mails","emoji":"📬","color":"#38bdf8"},
+    {"id":"video","name":"Chaîne Vidéo","emoji":"🎬","color":"#f43f5e"},
+    {"id":"client","name":"Client Dupont","emoji":"🪵","color":"#84cc16"}
+  ],
+  "tasks": [
+    {"id":"site-refonte","universe":"site","title":"Refonte de la page d'accueil","status":"active","startedAt":"2026-01-15T09:30:00+01:00","note":"Maquette validée, intégration en cours"},
+    {"id":"site-seo","universe":"site","title":"Audit SEO","status":"done","startedAt":"2026-01-14T14:00:00+01:00","doneAt":"2026-01-15T08:45:00+01:00","note":"Rapport livré"},
+    {"id":"app-login","universe":"app","title":"Écran de connexion","status":"active","startedAt":"2026-01-15T09:50:00+01:00","note":"Tests sur iOS"},
+    {"id":"app-push","universe":"app","title":"Notifications push","status":"waiting","note":"En attente de la clé API"},
+    {"id":"mails-veille","universe":"mails","title":"Veille de la boîte mail","status":"active","startedAt":"2026-01-15T08:00:00+01:00","note":"Aucun nouveau message"},
+    {"id":"video-ep3","universe":"video","title":"Épisode 3","status":"scheduled","scheduledAt":"2026-01-16T18:00:00+01:00","note":"Publication programmée"},
+    {"id":"video-ep4","universe":"video","title":"Épisode 4","status":"queued"},
+    {"id":"client-devis","universe":"client","title":"Devis pour le client","status":"waiting","note":"Le client doit choisir entre deux versions"}
+  ],
+  "log": [
+    {"at":"2026-01-15T08:45:00+01:00","task":"site-seo","text":"Audit SEO terminé, rapport livré"},
+    {"at":"2026-01-15T09:30:00+01:00","task":"site-refonte","text":"Démarrage de l'intégration"},
+    {"at":"2026-01-15T09:50:00+01:00","task":"app-login","text":"Écran de connexion en test"}
+  ]
+}
