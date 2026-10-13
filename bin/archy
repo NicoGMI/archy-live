@@ -1,0 +1,3 @@
+#!/bin/sh
+# Une ligne : bin/archy start|done|note|wait|block|sched|queue <id> ...   (ex: bin/archy done web-refonte "5 élèves OK, 2 bugs")
+cd "$(dirname "$0")/.." && node scripts/update.mjs "$@"
