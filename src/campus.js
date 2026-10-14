@@ -1,10 +1,11 @@
-import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import {mergeGeometries,mergeVertices} from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import * as THREE from 'three'
-import {RoundedBoxGeometry} from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
+
 import {logoBoard} from './branding.js'
 const cache=new Map()
 export const mat=(color,roughness=.72)=>{const k=color+roughness;if(!cache.has(k))cache.set(k,new THREE.MeshLambertMaterial({color}));return cache.get(k)}
-export function block(g,w,h,d,c,x,y,z,r=.045){const o=new THREE.Mesh((w*h*d>60&&Math.min(w,h,d)>.2?new RoundedBoxGeometry(w,h,d,1,Math.min(r,w/4,h/4,d/4)):new THREE.BoxGeometry(w,h,d)),mat(c));o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;g.add(o);return o}
+function bevelBox(w,h,d,r){const shape=new THREE.Shape();shape.moveTo(-w/2+r,-d/2);shape.lineTo(w/2-r,-d/2);shape.quadraticCurveTo(w/2,-d/2,w/2,-d/2+r);shape.lineTo(w/2,d/2-r);shape.quadraticCurveTo(w/2,d/2,w/2-r,d/2);shape.lineTo(-w/2+r,d/2);shape.quadraticCurveTo(-w/2,d/2,-w/2,d/2-r);shape.lineTo(-w/2,-d/2+r);shape.quadraticCurveTo(-w/2,-d/2,-w/2+r,-d/2);const geo=new THREE.ExtrudeGeometry(shape,{depth:h,bevelEnabled:false,curveSegments:2});geo.rotateX(-Math.PI/2);geo.translate(0,-h/2,0);return geo}
+export function block(g,w,h,d,c,x,y,z,r=.045){const o=new THREE.Mesh((w*h*d>60&&Math.min(w,h,d)>.2?bevelBox(w,h,d,Math.min(r,w/4,h/4,d/4)):new THREE.BoxGeometry(w,h,d)),mat(c));o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;g.add(o);return o}
 const ball=(g,r,c,x,y,z)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(r,8,6),mat(c));o.position.set(x,y,z);o.castShadow=true;g.add(o);return o}
 export function tree(g,x,z,s=1){const t=new THREE.Group();const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.085,.13,1.1,8),mat('#ddd9c9'));trunk.position.y=.55;trunk.castShadow=true;t.add(trunk);for(let k=0;k<4;k++){const bark=block(t,.025,.06,.13,'#657b74',.078,.3+k*.22,0,.005);bark.rotation.z=.18}
  const crown=ball(t,.48,'#4e8f76',0,1.35,0);crown.scale.set(.85,1.3,.85);ball(t,.29,'#8cbaa0',.18,1.62,.07);t.position.set(x,.06,z);t.scale.setScalar(s);g.add(t)}
@@ -55,7 +56,7 @@ export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,fl
  if(index===0||index===2){block(g,1.0,.12,1.4,'#c6cebf',-2.65,.3,0);for(let i=0;i<5;i++)block(g,.7,.075,.12,'#c5d7d0',-2.65,.7+i*.06,-.7);for(const z of[-.7,.7]){block(g,.06,.7,.06,'#7c9996',-3.06,.61,z);block(g,.055,.055,1.4,'#7c9996',-3.06,.96,0)}}
  g.userData.uni=u.id;return g}
 export function campusGround(g){
- block(g,26,.55,34,'#748f8c',0,-.3,0,.22);block(g,25.8,.10,33.8,'#b9d2a3',0,.0,0,.2)
+ block(g,26,.55,34,'#748f8c',0,-.3,0,.22);block(g,25.8,.10,33.8,'#aecabc',0,.0,0,.2)
  // Layout and roads are the original V21 geometry. A pocket garden fills the vacant west side.
  block(g,4,.12,6,'#8faba0',10,.09,8);block(g,3.7,.04,5.7,'#b3c9ad',10,.17,8)
  const f=new THREE.Group();const basin=new THREE.Mesh(new THREE.CylinderGeometry(1.05,1.13,.25,40),mat('#e9eae1'));basin.position.y=.25;basin.receiveShadow=true;f.add(basin);const water=new THREE.Mesh(new THREE.CircleGeometry(.92,40),mat('#84c7d5',.24));water.rotation.x=-Math.PI/2;water.position.y=.38;f.add(water);const center=new THREE.Mesh(new THREE.CylinderGeometry(.18,.27,.5,16),mat('#e3e9df'));center.position.y=.6;f.add(center);ball(f,.25,'#c7e2d3',0,.89,0);f.position.set(10,0,8);g.add(f)
@@ -67,6 +68,14 @@ export function campusGround(g){
  for(const z of[-2.2,2.2])planter(g,10,8+z,1.3)
  for(const x of[-10.8,-8.7])for(const z of[1,3])block(g,.1,1.45,.1,'#9a795b',x,.75,z);for(let k=0;k<8;k++)block(g,2.6,.08,.075,'#9a795b',-9.75,1.51,1+k*.29);bench(g,-9.75,2.6);
 
+
+
+ // Limestone and copper entrance: a campus landmark rather than a work-status marker.
+ const gate=new THREE.Group();for(const sd of[-1,1]){block(gate,.26,2.3,.28,'#dae3d4',sd*1.6,1.15,0);block(gate,.4,.18,.42,'#b6c9b7',sd*1.6,.13,0);block(gate,.34,.12,.38,'#b79275',sd*1.6,2.35,0)}block(gate,3.6,.5,.18,'#517e73',0,2.32,0);block(gate,3.8,.08,.3,'#bfa082',0,2.6,0);
+ const cv=document.createElement('canvas');cv.width=512;cv.height=96;const cc=cv.getContext('2d');cc.fillStyle='#517e73';cc.fillRect(0,0,512,96);cc.fillStyle='#f5f1df';cc.font='700 48px sans-serif';cc.textAlign='center';cc.textBaseline='middle';cc.fillText('LE CAMPUS',256,50);const signTex=new THREE.CanvasTexture(cv);signTex.colorSpace=THREE.SRGBColorSpace;const sign=new THREE.Mesh(new THREE.PlaneGeometry(2.9,.42),new THREE.MeshBasicMaterial({map:signTex}));sign.position.set(0,2.32,.105);gate.add(sign);const reverse=sign.clone();reverse.position.z=-.105;reverse.rotation.y=Math.PI;gate.add(reverse);gate.rotation.y=Math.PI/2;gate.position.set(11,.2,.5);g.add(gate);
+ // Botanical edging and warm stone details form the campus identity.
+ for(const [x,z]of[[-10.8,14.5],[-7.8,14.5],[-3.8,14.5],[.2,14.5],[5.2,15.5],[10.2,14.5],[-10.8,-13.5],[-7.8,-13.5],[6.2,-13.5],[10.2,-9.5]]){for(let i=0;i<3;i++)ball(g,.09,['#d9c7a3','#d3a9a6','#bacba4'][i],x+.18*i,.16,z+.14*i)}
+ for(const [x,z,w,d]of[[-9,-10,4,7],[-9,11,4,6],[9,-10,4,5]]){block(g,w+.15,.1,.09,'#c2c9b3',x,.12,z-d/2);block(g,.09,.1,d,'#c2c9b3',x-w/2,.12,z)}
  // A quiet reading courtyard and cycle parking animate the campus without invented data.
  block(g,3.5,.045,3.1,'#c2cbb8',-1.6,.1,-6.2);for(let i=0;i<5;i++)block(g,3.4,.008,.018,'#abb8a5',-1.6,.13,-7.5+i*.6);
  bench(g,-2.8,-6.1,Math.PI/2);bench(g,-.4,-6.1,-Math.PI/2);planter(g,-1.6,-7.7,1.7);
@@ -84,4 +93,4 @@ export function campusGround(g){
  return {water}
 }
 
-export function compactStatic(root,exclude=[]){root.updateMatrixWorld(true);const inv=root.matrixWorld.clone().invert(),buckets=new Map(),remove=[];root.traverse(o=>{if(!o.isMesh||(!o.material?.isMeshStandardMaterial&&!o.material?.isMeshLambertMaterial)||(()=>{let a=o;while(a){if(exclude.includes(a))return true;a=a.parent}return false})())return;const geo=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();geo.applyMatrix4(inv.clone().multiply(o.matrixWorld));const colors=new Float32Array(geo.attributes.position.count*3),old=geo.attributes.color;for(let i=0;i<geo.attributes.position.count;i++){colors[i*3]=o.material.color.r*(old?old.getX(i):1);colors[i*3+1]=o.material.color.g*(old?old.getY(i):1);colors[i*3+2]=o.material.color.b*(old?old.getZ(i):1)}geo.setAttribute('color',new THREE.BufferAttribute(colors,3));const k=o.material.type+(o.material.roughness??'')+(o.material.metalness??'');if(!buckets.has(k)){const m=o.material.clone();m.color.set('#ffffff');m.vertexColors=true;buckets.set(k,{mat:m,geos:[]})}buckets.get(k).geos.push(geo);remove.push(o)});remove.forEach(o=>{o.removeFromParent();o.geometry.dispose()});for(const {mat,geos} of buckets.values()){const geo=mergeGeometries(geos);if(!geo)throw Error('Static merge failed');const m=new THREE.Mesh(geo,mat);m.castShadow=true;m.receiveShadow=true;root.add(m);geos.forEach(g=>g.dispose())}}
+export function compactStatic(root,exclude=[]){root.updateMatrixWorld(true);const inv=root.matrixWorld.clone().invert(),buckets=new Map(),remove=[];root.traverse(o=>{if(!o.isMesh||(!o.material?.isMeshStandardMaterial&&!o.material?.isMeshLambertMaterial)||(()=>{let a=o;while(a){if(exclude.includes(a))return true;a=a.parent}return false})())return;const geo=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();geo.applyMatrix4(inv.clone().multiply(o.matrixWorld));const colors=new Float32Array(geo.attributes.position.count*3),old=geo.attributes.color;for(let i=0;i<geo.attributes.position.count;i++){colors[i*3]=o.material.color.r*(old?old.getX(i):1);colors[i*3+1]=o.material.color.g*(old?old.getY(i):1);colors[i*3+2]=o.material.color.b*(old?old.getZ(i):1)}geo.setAttribute('color',new THREE.BufferAttribute(colors,3));const k=o.material.type+(o.material.roughness??'')+(o.material.metalness??'');if(!buckets.has(k)){const m=o.material.clone();m.color.set('#ffffff');m.vertexColors=true;buckets.set(k,{mat:m,geos:[]})}buckets.get(k).geos.push(geo);remove.push(o)});remove.forEach(o=>{o.removeFromParent();o.geometry.dispose()});for(const {mat,geos} of buckets.values()){const merged=mergeGeometries(geos);const geo=merged&&mergeVertices(merged);merged?.dispose();if(!geo)throw Error('Static merge failed');const m=new THREE.Mesh(geo,mat);m.castShadow=true;m.receiveShadow=true;root.add(m);geos.forEach(g=>g.dispose())}}

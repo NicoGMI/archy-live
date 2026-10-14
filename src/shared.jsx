@@ -25,7 +25,7 @@ export function useData(){
     const stop=()=>{clearInterval(a);a=null}
     const vis=()=>{document.hidden?stop():start()}
     const b=setInterval(()=>setNow(Date.now()),15000)
-    document.addEventListener('visibilitychange',vis);vis()
+    document.addEventListener('visibilitychange',vis);load();if(!document.hidden)a=setInterval(load,CONFIG.refreshSeconds*1000)
     return()=>{alive=false;stop();clearInterval(b);document.removeEventListener('visibilitychange',vis)}},[])
   return {d,err,now,okAt}
 }
