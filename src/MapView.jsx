@@ -1,3 +1,4 @@
+import {turnToward} from './motion.js'
 import React,{useEffect,useRef,useState} from 'react'
 import * as THREE from 'three'
 import {Toggle,useData,SC,LB,ORD,fmt,ActionBar} from './shared.jsx'
@@ -7,7 +8,7 @@ import YoutubeStats from './YoutubeStats.jsx'
 import {BIOMES,districtFor,cityRoutes,drawRoads,biomeTree,distanceToRoad,pointAlong} from './city.js'
 import {CONFIG} from './config.js'
 import {tx,texMat} from './textures.js'
-import {M,label,bubble,trainer} from './props.js'
+import {M,label,bubble,trainer,animateTrainer} from './props.js'
 import {buildInterior,disposeInterior} from './interior.js'
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js'
 // Carte : une maison par univers (place fixe), fenêtres = tâches, personnage qui marche = tâche active, PNJ = attente / programmé / bloqué / en file.
@@ -236,7 +237,7 @@ export default function MapView(){
       const w=trainer(style[0],style[1]);w.scale.setScalar(1.45);w.userData.uni=u.id
       const off=(k%2?-1:1)*(2.1+Math.floor(k/2)*.9),wx=door.x+px*off,wz=door.z+pz*off
       w.position.set(wx,hill(wx,wz),wz);w.rotation.y=Math.atan2(ux,uz)+Math.PI*.9
-      const b=bubble(style[2],style[3]);b.position.set(0,1.6,0);w.add(b);dyn.add(w);actors.push({w,type:'idle'})}
+      const b=bubble(style[2],style[3]);b.position.set(0,1.82,0);w.add(b);dyn.add(w);actors.push({w,type:'idle',ph:i+k})}
     function build(dd){
       closeInterior();disposeTree(dyn);dyn.clear();actors=[];glow=[];smokes=[];alertBubbles=[];slotOf={};houses={};signs={}
       if(!dd)return
@@ -248,9 +249,9 @@ export default function MapView(){
         const notices=(dd.alerts||[]).filter(a=>a.universe===u.id);if(notices.length){const last=notices[notices.length-1];const al=label((last.icon||"✉")+" "+(notices.length>1?notices.length+" · ":"")+last.text.slice(0,36),"#f59e0b",42,"#fff7df","#7a3d00");al.position.set(sp.x,hill(sp.x,sp.z)+8.7,sp.z);al.userData.uni=u.id;al.userData.baseY=al.position.y;dyn.add(al);alertBubbles.push(al)}
         const door={x:sp.x+ux*2.9,z:sp.z+uz*2.9}
         ts.filter(t=>t.status==='active').forEach((t,k)=>{const w=trainer(u.color);w.scale.setScalar(1.45);w.userData.uni=u.id;dyn.add(w)
-          const lb=label(t.title.length>24?t.title.slice(0,23)+'…':t.title,'#16a34a',40);lb.scale.multiplyScalar(.55);lb.position.set(0,1.95,0);w.add(lb)
-          const b=bubble('!','#16a34a');b.position.set(0,1.55,0);w.add(b)
-          actors.push({w,type:'walk',route:routes.paths[u.id],sp,px,pz,off:(k-.3)*.7,ph:i*1.3+k*2.1,spd:.5+.1*k})})
+          const lb=label(t.title.length>24?t.title.slice(0,23)+'…':t.title,'#16a34a',40);lb.scale.multiplyScalar(.55);lb.position.set(0,2.12,0);w.add(lb)
+          const b=bubble('!','#16a34a');b.position.set(0,1.78,0);w.add(b)
+          actors.push({w,type:'walk',route:routes.paths[u.id],sp,px,pz,off:(k-.3)*.7,ph:i*1.3+k*2.1,spd:.13+.015*k,gait:0})})
         ts.filter(t=>t.status!=='active'&&t.status!=='done').sort((a,b)=>ORD[a.status]-ORD[b.status]).slice(0,8).forEach((t,k)=>npc(u,ts,t,k,door,px,pz,ux,uz,i))
       })
       r.shadowMap.needsUpdate=true
@@ -267,16 +268,19 @@ export default function MapView(){
       if(uid===selId&&tid){setTask(tid);return};select(uid)}
     cv.addEventListener('pointerdown',pd);cv.addEventListener('pointerup',pu)
     const onKey=e=>{if(e.key==='Escape')select(null)};addEventListener('keydown',onKey)
-    if(new URLSearchParams(location.search).has('debug')){window.__cam=cam;window.__r=r;window.__ctl=ctl;window.__pick=select}
+    if(new URLSearchParams(location.search).has('debug')){window.__cam=cam;window.__r=r;window.__ctl=ctl;window.__pick=select;window.__actors=()=>actors}
     build(dataRef.current);r.shadowMap.needsUpdate=true
     let stop=false;const clock=new THREE.Clock()
     const loop=()=>{if(stop)return;requestAnimationFrame(loop);const t=clock.getElapsedTime()
-      actors.forEach(o=>{if(o.type!=='walk')return;const w=o.w
-        const raw=Math.sin(t*o.spd+o.ph)*1.3,mov=Math.abs(raw)<1,s=(Math.max(-1,Math.min(1,raw))+1)/2,dv=Math.cos(t*o.spd+o.ph)>=0?1:-1
-        const p=pointAlong(o.route||[[0,0],[o.sp.x,o.sp.z]],s),L=Math.hypot(p.dx,p.dz)||1,X=p.x-p.dz/L*o.off*.3,Z=p.z+p.dx/L*o.off*.3;w.position.set(X,hill(X,Z),Z);w.rotation.y=Math.atan2(p.dx*dv,p.dz*dv)
-        const sw=mov?Math.sin(t*9+o.ph)*.7:0;w.userData.legs[0].rotation.x=sw;w.userData.legs[1].rotation.x=-sw;w.userData.arms[0].rotation.x=-sw*.8;w.userData.arms[1].rotation.x=sw*.8})
+      const dt=Math.min(.05,t-(loop.lastT??t));loop.lastT=t
+      actors.forEach(o=>{const w=o.w;if(o.type!=='walk'){animateTrainer(w,t*.9+o.ph,.08);return}
+        const cycle=t*o.spd+o.ph,s=(1-Math.cos(cycle))/2,dv=Math.sin(cycle)>=0?1:-1
+        const p=pointAlong(o.route||[[0,0],[o.sp.x,o.sp.z]],s),L=Math.hypot(p.dx,p.dz)||1,X=p.x-p.dz/L*o.off*.3,Z=p.z+p.dx/L*o.off*.3
+        const moved=o.last?Math.hypot(X-o.last.x,Z-o.last.z):0,speed=dt?moved/dt:0;o.last={x:X,z:Z};o.gait+=moved*3.6
+        w.position.set(X,hill(X,Z),Z);w.rotation.y=turnToward(w.rotation.y,Math.atan2(p.dx*dv,p.dz*dv),dt)
+        animateTrainer(w,o.gait,Math.min(1,speed/.55))})
       if(flight&&camGoal){const k=Math.min(1,(performance.now()-camGoal.s)/1100),e=k*k*(3-2*k);cam.position.lerpVectors(camGoal.p0,camGoal.p,e);ctl.target.lerpVectors(camGoal.t0,camGoal.t,e);if(k>=1){flight=0;camGoal=null}}
-      if(inter)inter.userData.walkers.forEach((w,i)=>{const k=w.userData.kind,b=w.userData.ry;if(k==="waiting"||k==="scheduled"||k==="blocked"){if(w.userData.bx===undefined)w.userData.bx=w.position.x;w.position.x=w.userData.bx+Math.sin(t*.6+i)*.4;w.position.y=.06+Math.abs(Math.sin(t*4+i))*.02}if(k==='active'){w.position.y=.06+Math.abs(Math.sin(t*2.4+i))*.025;w.userData.arms[0].rotation.x=-.5+Math.sin(t*6+i)*.25;w.userData.arms[1].rotation.x=-.5-Math.sin(t*6+i)*.25}
+      if(inter)inter.userData.walkers.forEach((w,i)=>{animateTrainer(w,t*2.4+i,.12);const k=w.userData.kind,b=w.userData.ry;if(k==="waiting"||k==="scheduled"||k==="blocked"){if(w.userData.bx===undefined)w.userData.bx=w.position.x;w.position.x=w.userData.bx+Math.sin(t*.6+i)*.4;w.position.y=.06+Math.abs(Math.sin(t*4+i))*.02}if(k==='active'){w.position.y=.06+Math.abs(Math.sin(t*2.4+i))*.025;w.userData.arms[0].rotation.x=-.5+Math.sin(t*6+i)*.25;w.userData.arms[1].rotation.x=-.5-Math.sin(t*6+i)*.25}
         else if(k==='blocked'){w.rotation.y=b+Math.sin(t*2.2+i)*.7;w.position.x+=Math.sin(t*2.2+i)*.0015}
         else if(k==='waiting'){w.rotation.z=Math.sin(t*1.3+i)*.05;w.position.y=.06+Math.abs(Math.sin(t*1.1+i))*.03}
         else{w.rotation.y=b+Math.sin(t*.9+i)*.25}})
