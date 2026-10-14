@@ -54,7 +54,8 @@ export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,fl
  for(let k=0;k<3;k++){const x=2.75,z=-.9+k*.72;for(const dz of[-.22,.22]){const wheel=new THREE.Mesh(new THREE.TorusGeometry(.17,.025,5,16),mat('#6a7877'));wheel.rotation.y=Math.PI/2;wheel.position.set(x,.24,z+dz);g.add(wheel)}block(g,.035,.24,.38,accent,x,.38,z).rotation.x=.25;block(g,.08,.04,.16,'#5a6567',x,.52,z)}
  // A distinct side stair landing gives each campus block a human scale.
  if(index===0||index===2){block(g,1.0,.12,1.4,'#c6cebf',-2.65,.3,0);for(let i=0;i<5;i++)block(g,.7,.075,.12,'#c5d7d0',-2.65,.7+i*.06,-.7);for(const z of[-.7,.7]){block(g,.06,.7,.06,'#7c9996',-3.06,.61,z);block(g,.055,.055,1.4,'#7c9996',-3.06,.96,0)}}
- g.userData.uni=u.id;return g}
+ // A low-poly depth shell keeps pedestrians behind the building without redrawing window detail.
+ g.updateMatrixWorld(true);const shells=[];g.traverse(o=>{if(!o.isMesh||!o.material?.isMeshLambertMaterial)return;o.geometry.computeBoundingBox();const b=o.geometry.boundingBox,size=new THREE.Vector3();b.getSize(size);if(size.x<.3||size.y<.08||size.z<.3)return;const geo=new THREE.BoxGeometry(size.x,size.y,size.z),center=new THREE.Vector3();b.getCenter(center);geo.translate(center.x,center.y,center.z);geo.applyMatrix4(o.matrixWorld);shells.push(geo)});g.userData.depthGeometry=mergeGeometries(shells);shells.forEach(geo=>geo.dispose());g.userData.uni=u.id;return g}
 export function campusGround(g){
  block(g,26,.55,34,'#748f8c',0,-.3,0,.22);block(g,25.8,.10,33.8,'#a5c995',0,.0,0,.2)
  // Layout and roads are the original V21 geometry. A pocket garden fills the vacant west side.
