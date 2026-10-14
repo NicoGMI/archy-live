@@ -4,8 +4,8 @@ import {RoundedBoxGeometry} from 'three/examples/jsm/geometries/RoundedBoxGeomet
 import {logoBoard} from './branding.js'
 const cache=new Map()
 export const mat=(color,roughness=.72)=>{const k=color+roughness;if(!cache.has(k))cache.set(k,new THREE.MeshLambertMaterial({color}));return cache.get(k)}
-export function block(g,w,h,d,c,x,y,z,r=.045){const o=new THREE.Mesh((w*h*d>1.5&&Math.min(w,h,d)>.2?new RoundedBoxGeometry(w,h,d,1,Math.min(r,w/4,h/4,d/4)):new THREE.BoxGeometry(w,h,d)),mat(c));o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;g.add(o);return o}
-const ball=(g,r,c,x,y,z)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(r,12,10),mat(c));o.position.set(x,y,z);o.castShadow=true;g.add(o);return o}
+export function block(g,w,h,d,c,x,y,z,r=.045){const o=new THREE.Mesh((w*h*d>60&&Math.min(w,h,d)>.2?new RoundedBoxGeometry(w,h,d,1,Math.min(r,w/4,h/4,d/4)):new THREE.BoxGeometry(w,h,d)),mat(c));o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;g.add(o);return o}
+const ball=(g,r,c,x,y,z)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(r,8,6),mat(c));o.position.set(x,y,z);o.castShadow=true;g.add(o);return o}
 export function tree(g,x,z,s=1){const t=new THREE.Group();const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.085,.13,1.1,8),mat('#ddd9c9'));trunk.position.y=.55;trunk.castShadow=true;t.add(trunk);for(let k=0;k<4;k++){const bark=block(t,.025,.06,.13,'#657b74',.078,.3+k*.22,0,.005);bark.rotation.z=.18}
  const crown=ball(t,.48,'#4e8f76',0,1.35,0);crown.scale.set(.85,1.3,.85);ball(t,.29,'#8cbaa0',.18,1.62,.07);t.position.set(x,.06,z);t.scale.setScalar(s);g.add(t)}
 export function planter(g,x,z,w=1.1){block(g,w,.34,.65,'#dedbd3',x,.23,z);block(g,w-.12,.08,.52,'#6f8056',x,.41,z);for(let i=0;i<3;i++)ball(g,.19,'#71a585',x-w*.3+i*w*.3,.53,z)}
@@ -37,6 +37,12 @@ export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,fl
  if(index===0){block(g,1.35,2.25,2.65,'#9db5ab',-2.7,1.37,-.15);block(g,1.5,.13,2.8,'#587878',-2.7,2.55,-.15);for(let k=0;k<2;k++){block(g,.43,.7,.03,glass,-3+k*.6,1.5,1.19);block(g,.03,.8,.05,'#c5d2c9',-3+k*.6,1.5,1.22)}for(let k=0;k<3;k++)block(g,.03,.85,.66,glass,-3.39,1.52,-.95+k*.8);}
  if(index===2){block(g,2.55,1.0,1.55,'#c2c5b5',.25,.75,-2.2);block(g,2.75,.1,1.7,'#718b83',.25,1.3,-2.2);for(let k=0;k<3;k++)block(g,.63,.61,.025,glass,-.55+k*.8,.8,-3.0);}
  if(index===4){for(let k=0;k<3;k++){block(g,.15,roof-.3,.2,'#c2c3b4',-1.4+k*1.35,(roof+.3)/2,d/2+.23);block(g,.35,.08,.5,'#d5d4bf',-1.4+k*1.35,1.1,d/2+.25)}}
+
+ // Each school has an architectural signature, never a simulated work status.
+ if(index===1){const annex=new THREE.Group();block(annex,1.3,1.7,2.7,'#ccb195',0,1.1,0);block(annex,1.5,.13,2.95,'#b88464',0,2.02,0);for(let k=0;k<3;k++)block(annex,.028,.85,.63,glass,-.668,1.18,-.85+k*.82);annex.position.set(-2.8,0,-.15);g.add(annex)}
+ if(index===3){block(g,1.7,.9,1.2,'#b5cbbd',-.8,roof+.56,.1);block(g,1.85,.12,1.35,'#587878',-.8,roof+1.04,.1);for(let k=0;k<3;k++)block(g,.4,.5,.025,glass,-1.35+k*.5,roof+.56,.72)}
+ if(index===4){block(g,1.65,.45,1.25,'#aac6c4',.15,roof+.4,-.15);block(g,1.8,.12,1.4,'#64878b',.15,roof+.69,-.15);for(let k=0;k<3;k++)block(g,.08,.45,1.25,'#dde5df',-.55+k*.7,roof+.4,-.15)}
+ if(index===2){for(const sd of[-1,1]){block(g,.25,1.2,.3,'#d8d6c4',sd*1.17,.83,d/2+.4);block(g,.4,.13,.5,'#f0ead7',sd*1.17,1.47,d/2+.4)}block(g,2.9,.16,.68,'#a6b8a6',0,1.58,d/2+.4)}
  // Ground-floor lobby, canopy, layered steps, framed door and railings.
  block(g,1.35,.65,.07,glass,0,.68,d/2+.03);block(g,.065,.69,.09,'#c5d3ce',0,.68,d/2+.08)
  block(g,1.65,.12,1.0,accent,0,1.04,d/2+.4);for(const s of[-1,1])block(g,.055,.77,.055,'#bcc9c3',s*.74,.65,d/2+.73)
@@ -49,7 +55,7 @@ export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,fl
  if(index===0||index===2){block(g,1.0,.12,1.4,'#c6cebf',-2.65,.3,0);for(let i=0;i<5;i++)block(g,.7,.075,.12,'#c5d7d0',-2.65,.7+i*.06,-.7);for(const z of[-.7,.7]){block(g,.06,.7,.06,'#7c9996',-3.06,.61,z);block(g,.055,.055,1.4,'#7c9996',-3.06,.96,0)}}
  g.userData.uni=u.id;return g}
 export function campusGround(g){
- block(g,26,.55,34,'#748f8c',0,-.3,0,.22);block(g,25.8,.10,33.8,'#b1c8b1',0,.0,0,.2)
+ block(g,26,.55,34,'#748f8c',0,-.3,0,.22);block(g,25.8,.10,33.8,'#b9d2a3',0,.0,0,.2)
  // Layout and roads are the original V21 geometry. A pocket garden fills the vacant west side.
  block(g,4,.12,6,'#8faba0',10,.09,8);block(g,3.7,.04,5.7,'#b3c9ad',10,.17,8)
  const f=new THREE.Group();const basin=new THREE.Mesh(new THREE.CylinderGeometry(1.05,1.13,.25,40),mat('#e9eae1'));basin.position.y=.25;basin.receiveShadow=true;f.add(basin);const water=new THREE.Mesh(new THREE.CircleGeometry(.92,40),mat('#84c7d5',.24));water.rotation.x=-Math.PI/2;water.position.y=.38;f.add(water);const center=new THREE.Mesh(new THREE.CylinderGeometry(.18,.27,.5,16),mat('#e3e9df'));center.position.y=.6;f.add(center);ball(f,.25,'#c7e2d3',0,.89,0);f.position.set(10,0,8);g.add(f)
@@ -60,6 +66,12 @@ export function campusGround(g){
  for(let k=0;k<5;k++){ball(g,.18,'#e7c481',-11.4+k*.65,.41,2.5);ball(g,.12,'#b9a0b7',-11.4+k*.65,.53,2.5)}
  for(const z of[-2.2,2.2])planter(g,10,8+z,1.3)
  for(const x of[-10.8,-8.7])for(const z of[1,3])block(g,.1,1.45,.1,'#9a795b',x,.75,z);for(let k=0;k<8;k++)block(g,2.6,.08,.075,'#9a795b',-9.75,1.51,1+k*.29);bench(g,-9.75,2.6);
+
+ // A quiet reading courtyard and cycle parking animate the campus without invented data.
+ block(g,3.5,.045,3.1,'#c2cbb8',-1.6,.1,-6.2);for(let i=0;i<5;i++)block(g,3.4,.008,.018,'#abb8a5',-1.6,.13,-7.5+i*.6);
+ bench(g,-2.8,-6.1,Math.PI/2);bench(g,-.4,-6.1,-Math.PI/2);planter(g,-1.6,-7.7,1.7);
+ for(const [x,z]of[[-7,3.4],[7,-5.5]]){block(g,.3,.5,.3,'#628b7e',x,.28,z);block(g,.35,.07,.35,'#9aafa1',x,.57,z)}
+ for(let k=0;k<3;k++){tree(g,-11, -3+k*1.5,.75);ball(g,.15,'#d7b98c',-10.2,.29,-3+k*1.5)}
  // Campus marker and public noticeboard are place identity, not live-task signals.
  block(g,.8,1.25,.38,'#bcc7ba',6,.72,12.4);block(g,.88,.11,.43,'#849f98',6,1.4,12.4);block(g,.58,.46,.045,'#365e61',6,.95,12.61);
  for(const x of[-1.5,-.2,1.1]){block(g,1,.13,1.3,'#92a88c',x,.16,13);block(g,.85,.04,1.15,'#a2bb96',x,.255,13);for(let k=0;k<3;k++)ball(g,.11,['#d9b488','#b8a3ae','#d6c5a0'][k],x-.2+k*.2,.39,13)}
