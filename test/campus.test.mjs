@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import * as THREE from 'three'
-import {block,compactStatic,campusBuilding} from '../src/campus.js'
+import {block,compactStatic,campusBuilding,bakeContact} from '../src/campus.js'
 import {PLAN,QUARTERS} from '../src/layout.js'
 test('pilot preserves the five original campus coordinates',()=>{assert.deepEqual(QUARTERS.etudiant.ids,['isme','excelia','iae','efrei','ece']);assert.deepEqual(PLAN.isme,[-28,-8]);assert.deepEqual(PLAN.ece,[-30,-17])})
 test('static compaction preserves positions and vertex colors with one draw',()=>{const root=new THREE.Group();block(root,1,1,1,'#ff0000',-2,1,0);block(root,1,1,1,'#00ff00',2,1,0);compactStatic(root);const meshes=[];root.traverse(o=>{if(o.isMesh)meshes.push(o)});assert.equal(meshes.length,1);const m=meshes[0];assert.equal(m.material.vertexColors,true);m.geometry.computeBoundingBox();assert.ok(m.geometry.boundingBox.min.x<=-2.5);assert.ok(m.geometry.boundingBox.max.x>=2.5);const c=m.geometry.attributes.color;assert.equal(c.getX(0),1);assert.equal(c.getY(c.count-1),1)})
@@ -11,3 +11,5 @@ test('rounded large blocks keep requested footprint and height',()=>{const g=new
 test('depth shell is low-poly and remains independent of static compaction',()=>{const b=campusBuilding({id:'unbranded'},0),depth=b.userData.depthGeometry;assert.ok(depth.attributes.position.count<2000);depth.computeBoundingBox();const box=depth.boundingBox.clone();compactStatic(b);assert.equal(b.userData.depthGeometry,depth);depth.computeBoundingBox();assert.ok(depth.boundingBox.equals(box));assert.ok(box.max.y>4);assert.ok(box.min.y<.1)})
 
 test('custom indexed paving with UVs can join standard static geometry',()=>{const g=new THREE.Group();block(g,1,1,1,'#cccccc',0,0,0);const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute([0,0,0,1,0,0,0,0,1],3));geo.setAttribute('uv',new THREE.Float32BufferAttribute([0,0,1,0,0,1],2));geo.setIndex([0,1,2]);geo.computeVertexNormals();g.add(new THREE.Mesh(geo,new THREE.MeshLambertMaterial()));assert.doesNotThrow(()=>compactStatic(g));assert.equal(g.children.length,1)})
+
+test('contact shading is bounded and survives compaction',()=>{const g=new THREE.Group();block(g,2,1,2,'#ffffff',0,.5,0);block(g,2,.1,2,'#ffffff',0,1.08,0);bakeContact(g);let shaded=0;g.traverse(o=>{if(!o.isMesh)return;const c=o.geometry.attributes.color;for(const n of c.array){assert.ok(n>=.719&&n<=1);if(n<.99)shaded++}});assert.ok(shaded>0);compactStatic(g);assert.equal(g.children.length,1);assert.ok(g.children[0].geometry.attributes.color.array.some(v=>v<.99))})
