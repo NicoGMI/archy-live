@@ -7,24 +7,31 @@ export const mat=(color,roughness=.72)=>{const k=color+roughness;if(!cache.has(k
 function bevelBox(w,h,d,r){w-=r*2;d-=r*2;const shape=new THREE.Shape();shape.moveTo(-w/2+r,-d/2);shape.lineTo(w/2-r,-d/2);shape.quadraticCurveTo(w/2,-d/2,w/2,-d/2+r);shape.lineTo(w/2,d/2-r);shape.quadraticCurveTo(w/2,d/2,w/2-r,d/2);shape.lineTo(-w/2+r,d/2);shape.quadraticCurveTo(-w/2,d/2,-w/2,d/2-r);shape.lineTo(-w/2,-d/2+r);shape.quadraticCurveTo(-w/2,-d/2,-w/2+r,-d/2);const geo=new THREE.ExtrudeGeometry(shape,{depth:Math.max(.005,h-r*2),bevelEnabled:true,bevelThickness:r,bevelSize:r,bevelSegments:1,steps:1,curveSegments:2});geo.rotateX(-Math.PI/2);geo.translate(0,-h/2+r,0);return geo}
 export function block(g,w,h,d,c,x,y,z,r=.045){const o=new THREE.Mesh((w*h*d>5&&Math.min(w,h,d)>.18?bevelBox(w,h,d,Math.min(r,w/4,h/4,d/4)):new THREE.BoxGeometry(w,h,d)),mat(c));o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;g.add(o);return o}
 const ball=(g,r,c,x,y,z)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(r,10,6),mat(c));o.position.set(x,y,z);o.castShadow=true;g.add(o);return o}
-export function tree(g,x,z,s=1){const t=new THREE.Group();const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.085,.13,1.1,8),mat('#ddd9c9'));trunk.position.y=.55;trunk.castShadow=true;t.add(trunk);for(let k=0;k<4;k++){const bark=block(t,.025,.06,.13,'#657b74',.078,.3+k*.22,0,.005);bark.rotation.z=.18}
- const crown=ball(t,.48,'#3f896e',0,1.35,0);crown.scale.set(.85,1.3,.85);ball(t,.29,'#8cbaa0',.18,1.62,.07);t.position.set(x,.06,z);t.scale.setScalar(s);g.add(t)}
+export function tree(g,x,z,s=1){const t=new THREE.Group(),v=Math.abs(Math.round(x*13+z*7))%3;const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.075,.13,1.15,7),mat('#d2c5a8'));trunk.position.y=.57;trunk.castShadow=true;t.add(trunk);
+ const palettes=[['#478b70','#6ca37a','#97b88b'],['#537f69','#739d78','#a0b793'],['#568e78','#7aac90','#aed0a0']],c=palettes[v];
+ if(v===0){ball(t,.53,c[0],-.18,1.35,0).scale.set(1,1.15,.95);ball(t,.43,c[1],.25,1.54,.04);ball(t,.29,c[2],.17,1.82,.07)}
+ else if(v===1){ball(t,.58,c[0],0,1.55,0).scale.set(.92,1.22,.88);ball(t,.35,c[1],-.23,1.57,.06);ball(t,.29,c[2],.17,1.88,.06)}
+ else{ball(t,.56,c[0],0,1.35,0).scale.set(1.08,.92,1.02);ball(t,.38,c[1],.27,1.53,0);ball(t,.27,c[2],-.13,1.7,.13)}
+ const branch=new THREE.Mesh(new THREE.CylinderGeometry(.035,.045,.5,5),mat('#d2c5a8'));branch.position.set(.1,.97,0);branch.rotation.z=-.55;t.add(branch);t.position.set(x,.06,z);t.scale.setScalar(s);g.add(t)}
+function softBlock(g,w,h,d,c,x,y,z,r=.07){const o=new THREE.Mesh(bevelBox(w,h,d,Math.min(r,h*.28)),mat(c));o.position.set(x,y,z);o.castShadow=true;g.add(o);return o}
+function garden(g,x,z,w,d){const ring=new THREE.Mesh(new THREE.CylinderGeometry(1,1,.07,24),mat('#b7c4a3'));ring.scale.set(w/2,1,d/2);ring.position.set(x,.085,z);g.add(ring);const soil=new THREE.Mesh(new THREE.CircleGeometry(1,24),mat('#86ac80'));soil.rotation.x=-Math.PI/2;soil.scale.set((w-.13)/2,(d-.13)/2,1);soil.position.set(x,.125,z);g.add(soil)}
 export function planter(g,x,z,w=1.1){block(g,w,.34,.65,'#dedbd3',x,.23,z,.075);block(g,w-.12,.08,.52,'#6f8056',x,.41,z);for(let i=0;i<3;i++)ball(g,.19,'#71a585',x-w*.3+i*w*.3,.53,z)}
 export function bench(g,x,z,ry=0){const b=new THREE.Group();for(let i=0;i<3;i++)block(b,1.3,.065,.12,'#b99b79',0,.46,i*.13-.13);block(b,1.3,.25,.07,'#b99b79',0,.69,-.24);for(const s of[-1,1]){block(b,.06,.44,.06,'#66777d',s*.48,.23,0);block(b,.06,.65,.06,'#66777d',s*.48,.35,-.21)}b.position.set(x,0,z);b.rotation.y=ry;g.add(b)}
 export function lamp(g,x,z){const t=new THREE.Group();block(t,.07,2,.07,'#70848b',0,1,0);block(t,.45,.055,.22,'#eaf0e9',.16,2.02,0);block(t,.34,.025,.16,'#ffffe5',.16,1.99,0);t.position.set(x,0,z);g.add(t)}
 export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,floors=[3,4,3,4,3][index],fh=1.02,accent=['#738f8a','#b88464','#839895','#64878b','#87a29b'][index],glass=['#527b85','#61848b','#607a82','#476e7b','#4f7982'][index]
  block(g,5.35,.2,4.5,'#c6ceca',0,.12,0,.08);block(g,5.15,.1,4.3,'#eeeee6',0,.26,0)
  block(g,w,.8,d,'#e9e7dc',0,.68,0)
- for(let row=0;row<floors;row++){const y=1.1+row*fh;block(g,w,.91,d,['#dddcd1','#e2d6c6','#d1dbd6','#cbd7d7','#dbdfce'][index],0,y+.42,0)
-  block(g,w+.17,.1,d+.18,accent,0,y+.94,0);block(g,w+.26,.06,d+.27,'#dce4df',0,y+.995,0)
+ for(let row=0;row<floors;row++){const start=g.children.length,y=1.1+row*fh;block(g,w,.91,d,['#dddcd1','#e2d6c6','#d1dbd6','#cbd7d7','#dbdfce'][index],0,y+.42,0)
+  softBlock(g,w+.17,.12,d+.18,accent,0,y+.94,0);softBlock(g,w+.29,.08,d+.30,'#e4e8de',0,y+1.005,0)
   // Windows recessed behind continuous frames. Side elevations have the same level of detail.
   for(let k=0;k<4;k++){const x=-1.55+k*1.035;block(g,.78,.64,.025,glass,x,y+.43,d/2+.019,.006);block(g,.81,.055,.13,'#a9bbb7',x,y+.1,d/2+.055);block(g,.035,.68,.045,'#c5d2c9',x,y+.43,d/2+.04,.009);block(g,.8,.035,.04,'#c5d2c9',x,y+.43,d/2+.04,.009)}
   for(const s of[-1,1])for(let k=0;k<3;k++){const z=-1.05+k*1.05;block(g,.028,.63,.74,glass,s*(w/2+.015),y+.43,z);block(g,.08,.04,.8,'#c5d2c9',s*(w/2+.04),y+.1,z);block(g,.04,.65,.035,'#c5d2c9',s*(w/2+.04),y+.43,z)}
   // Coloured recessed strips, not a progress indicator.
   block(g,.13,.86,.12,accent,-w/2+.13,y+.43,d/2+.04)
+  if(row===floors-1&&(index===1||index===3)){const tier=new THREE.Group();for(const child of g.children.slice(start))tier.add(child);tier.scale.set(.86,1,.86);g.add(tier)}
  }
  // Different roof profiles retain a coherent campus family.
- const roof=1.1+floors*fh;block(g,w+.28,.12,d+.28,'#587878',0,roof,0)
+ const roof=1.1+floors*fh,roofStart=g.children.length;softBlock(g,w+.30,.16,d+.30,'#587878',0,roof,0)
  for(let k=0;k<3;k++)block(g,w+.1,.018,.022,'#76928c',0,roof+.065,-.9+k*.8)
  // Copper drainpipes and railings.
  for(const sd of[-1,1]){block(g,.045,roof-.5,.045,'#a98065',sd*(w/2-.05),(roof+.5)/2,d/2+.09);for(let h=0;h<3;h++)block(g,.11,.035,.075,'#b49b87',sd*(w/2-.05),1+h*1.3,d/2+.09)}
@@ -34,6 +41,7 @@ export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,fl
  block(g,.9,.45,.7,'#c1ceca',.75,roof+.27,-.55);for(let i=0;i<5;i++)block(g,.73,.025,.035,'#849995',.75,roof+.2+i*.067,-.195)
  block(g,1.55,.1,.85,'#648491',-.85,roof+.14,-.3).rotation.x=-.13
  for(let i=0;i<3;i++)ball(g,.24,'#79ad85',-1.3+i*.42,roof+.33,1.08)
+ if(index===1||index===3){const cap=new THREE.Group();for(const child of g.children.slice(roofStart))cap.add(child);cap.scale.set(.86,1,.86);g.add(cap)}
  // Distinct secondary volumes create silhouettes, while keeping the campus palette.
  if(index===0){block(g,1.35,2.25,2.65,'#9db5ab',-2.7,1.37,-.15);block(g,1.5,.13,2.8,'#587878',-2.7,2.55,-.15);for(let k=0;k<2;k++){block(g,.43,.7,.03,glass,-3+k*.6,1.5,1.19);block(g,.03,.8,.05,'#c5d2c9',-3+k*.6,1.5,1.22)}for(let k=0;k<3;k++)block(g,.03,.85,.66,glass,-3.39,1.52,-.95+k*.8);}
  if(index===2){block(g,2.55,1.0,1.55,'#c2c5b5',.25,.75,-2.2);block(g,2.75,.1,1.7,'#718b83',.25,1.3,-2.2);for(let k=0;k<3;k++)block(g,.63,.61,.025,glass,-.55+k*.8,.8,-3.0);}
@@ -46,7 +54,7 @@ export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,fl
  if(index===2){for(const sd of[-1,1]){block(g,.25,1.2,.3,'#d8d6c4',sd*1.17,.83,d/2+.4);block(g,.4,.13,.5,'#f0ead7',sd*1.17,1.47,d/2+.4)}block(g,2.9,.16,.68,'#a6b8a6',0,1.58,d/2+.4)}
  // Ground-floor lobby, canopy, layered steps, framed door and railings.
  block(g,1.35,.65,.07,glass,0,.68,d/2+.03);block(g,.065,.69,.09,'#c5d3ce',0,.68,d/2+.08)
- block(g,1.65,.12,1.0,accent,0,1.04,d/2+.4);for(const s of[-1,1])block(g,.055,.77,.055,'#bcc9c3',s*.74,.65,d/2+.73)
+ softBlock(g,1.85,.16,1.12,accent,0,1.04,d/2+.4);for(const s of[-1,1])block(g,.055,.77,.055,'#bcc9c3',s*.74,.65,d/2+.73)
  block(g,2.1,.09,.85,'#e1e4da',0,.2,d/2+.65);block(g,2.3,.07,.5,'#cdd6cf',0,.085,d/2+1.03)
  const brand=logoBoard(u.id,1.35,.39);if(brand){brand.position.set(0,1.33,d/2+.10);g.add(brand)}
  planter(g,-1.72,d/2+.4,.65);planter(g,1.72,d/2+.4,.65)
@@ -76,7 +84,7 @@ export function campusGround(g){
  const cv=document.createElement('canvas');cv.width=512;cv.height=96;const cc=cv.getContext('2d');cc.fillStyle='#517e73';cc.fillRect(0,0,512,96);cc.fillStyle='#f5f1df';cc.font='700 48px sans-serif';cc.textAlign='center';cc.textBaseline='middle';cc.fillText('LE CAMPUS',256,50);const signTex=new THREE.CanvasTexture(cv);signTex.colorSpace=THREE.SRGBColorSpace;const sign=new THREE.Mesh(new THREE.PlaneGeometry(2.9,.42),new THREE.MeshBasicMaterial({map:signTex}));sign.position.set(0,2.32,.105);gate.add(sign);const reverse=sign.clone();reverse.position.z=-.105;reverse.rotation.y=Math.PI;gate.add(reverse);gate.rotation.y=Math.PI/2;gate.position.set(11,.2,.5);g.add(gate);
  // Botanical edging and warm stone details form the campus identity.
  for(const [x,z]of[[-10.8,14.5],[-7.8,14.5],[-3.8,14.5],[.2,14.5],[5.2,15.5],[10.2,14.5],[-10.8,-13.5],[-7.8,-13.5],[6.2,-13.5],[10.2,-9.5]]){for(let i=0;i<3;i++)ball(g,.09,['#d9c7a3','#d3a9a6','#bacba4'][i],x+.18*i,.16,z+.14*i)}
- for(const [x,z,w,d]of[[-9,-10,4,7],[-9,11,4,6],[9,-10,4,5]]){block(g,w+.15,.1,.09,'#c2c9b3',x,.12,z-d/2);block(g,.09,.1,d,'#c2c9b3',x-w/2,.12,z)}
+ 
  // A quiet reading courtyard and cycle parking animate the campus without invented data.
  block(g,3.5,.045,3.1,'#c2cbb8',-1.6,.1,-6.2);for(let i=0;i<5;i++)block(g,3.4,.008,.018,'#abb8a5',-1.6,.13,-7.5+i*.6);
  bench(g,-2.8,-6.1,Math.PI/2);bench(g,-.4,-6.1,-Math.PI/2);planter(g,-1.6,-7.7,1.7);
@@ -86,7 +94,7 @@ export function campusGround(g){
  block(g,.8,1.25,.38,'#bcc7ba',6,.72,12.4);block(g,.88,.11,.43,'#849f98',6,1.4,12.4);block(g,.58,.46,.045,'#365e61',6,.95,12.61);
  for(const x of[-1.5,-.2,1.1]){block(g,1,.13,1.3,'#92a88c',x,.16,13);block(g,.85,.04,1.15,'#a2bb96',x,.255,13);for(let k=0;k<3;k++)ball(g,.11,['#d9b488','#b8a3ae','#d6c5a0'][k],x-.2+k*.2,.39,13)}
  // Connected planting beds frame the pedestrian campus, with distinct quiet spaces.
- for(const [x,z,w,d]of[[-9,-10,4,7],[-9,11,4,6],[9,-10,4,5],[-4,-14,4,2],[3,14,4,2]]){block(g,w,.04,d,'#84ad83',x,.07,z,.09);for(let i=0;i<5;i++){const xx=x+(i%3-1)*w*.28,zz=z+(Math.floor(i/3)-.5)*d*.55;ball(g,.26,['#6b9273','#8aaa80','#a0b68b'][i%3],xx,.31,zz)}}
+ for(const [x,z,w,d]of[[-9,-10,4,7],[-9,11,4,6],[9,-10,4,5],[-4,-14,4,2],[3,14,4,2]]){garden(g,x,z,w,d);for(let i=0;i<5;i++){const xx=x+(i%3-1)*w*.28,zz=z+(Math.floor(i/3)-.5)*d*.55;ball(g,.26,['#6b9273','#8aaa80','#a0b68b'][i%3],xx,.31,zz)}}
  for(const [x,z,s]of[[-10,-9,1.3],[-8,-11,1.2],[-10,12,1.2],[-8,10,1.15],[9,-12,1.25],[10,-8,1.3],[-3,-15,1.1],[2,15,1.15]])tree(g,x,z,s);
  for(const [x,z,ry]of[[-8.5,-8,.4],[-7,11,-.2],[8.5,-9,Math.PI/2]])bench(g,x,z,ry);
 
