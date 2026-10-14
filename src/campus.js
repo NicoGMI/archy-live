@@ -4,9 +4,9 @@ import * as THREE from 'three'
 import {logoBoard} from './branding.js'
 const cache=new Map()
 export const mat=(color,roughness=.72)=>{const k=color+roughness;if(!cache.has(k))cache.set(k,new THREE.MeshLambertMaterial({color}));return cache.get(k)}
-function bevelBox(w,h,d,r){w-=r*2;d-=r*2;const shape=new THREE.Shape();shape.moveTo(-w/2+r,-d/2);shape.lineTo(w/2-r,-d/2);shape.quadraticCurveTo(w/2,-d/2,w/2,-d/2+r);shape.lineTo(w/2,d/2-r);shape.quadraticCurveTo(w/2,d/2,w/2-r,d/2);shape.lineTo(-w/2+r,d/2);shape.quadraticCurveTo(-w/2,d/2,-w/2,d/2-r);shape.lineTo(-w/2,-d/2+r);shape.quadraticCurveTo(-w/2,-d/2,-w/2+r,-d/2);const geo=new THREE.ExtrudeGeometry(shape,{depth:Math.max(.005,h-r*2),bevelEnabled:true,bevelThickness:r,bevelSize:r,bevelSegments:1,steps:1,curveSegments:2});geo.rotateX(-Math.PI/2);geo.translate(0,-h/2+r,0);return geo}
+function bevelBox(w,h,d,r){w-=r*2;d-=r*2;const shape=new THREE.Shape();shape.moveTo(-w/2+r,-d/2);shape.lineTo(w/2-r,-d/2);shape.quadraticCurveTo(w/2,-d/2,w/2,-d/2+r);shape.lineTo(w/2,d/2-r);shape.quadraticCurveTo(w/2,d/2,w/2-r,d/2);shape.lineTo(-w/2+r,d/2);shape.quadraticCurveTo(-w/2,d/2,-w/2,d/2-r);shape.lineTo(-w/2,-d/2+r);shape.quadraticCurveTo(-w/2,-d/2,-w/2+r,-d/2);const geo=new THREE.ExtrudeGeometry(shape,{depth:Math.max(.005,h-r*2),bevelEnabled:true,bevelThickness:r,bevelSize:r,bevelSegments:2,steps:1,curveSegments:2});geo.rotateX(-Math.PI/2);geo.translate(0,-h/2+r,0);return geo}
 export function block(g,w,h,d,c,x,y,z,r=.045){const o=new THREE.Mesh((w*h*d>5&&Math.min(w,h,d)>.18?bevelBox(w,h,d,Math.min(r,w/4,h/4,d/4)):new THREE.BoxGeometry(w,h,d)),mat(c));o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;g.add(o);return o}
-const ball=(g,r,c,x,y,z)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(r,10,6),mat(c));o.position.set(x,y,z);o.castShadow=true;g.add(o);return o}
+const ball=(g,r,c,x,y,z)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(r,12,8),mat(c));o.position.set(x,y,z);o.castShadow=true;g.add(o);return o}
 export function tree(g,x,z,s=1){const t=new THREE.Group(),v=Math.abs(Math.round(x*13+z*7))%3;const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.075,.13,1.15,7),mat('#d2c5a8'));trunk.position.y=.57;trunk.castShadow=true;t.add(trunk);
  const palettes=[['#478b70','#6ca37a','#97b88b'],['#537f69','#739d78','#a0b793'],['#568e78','#7aac90','#aed0a0']],c=palettes[v];
  if(v===0){ball(t,.53,c[0],-.18,1.35,0).scale.set(1,1.15,.95);ball(t,.43,c[1],.25,1.54,.04);ball(t,.29,c[2],.17,1.82,.07)}
@@ -25,6 +25,8 @@ export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,fl
   softBlock(g,w+.17,.12,d+.18,accent,0,y+.94,0);softBlock(g,w+.29,.08,d+.30,'#e4e8de',0,y+1.005,0)
   // Windows recessed behind continuous frames. Side elevations have the same level of detail.
   for(let k=0;k<4;k++){const x=-1.55+k*1.035;block(g,.78,.64,.025,glass,x,y+.43,d/2+.019,.006);block(g,.81,.055,.13,'#a9bbb7',x,y+.1,d/2+.055);block(g,.035,.68,.045,'#c5d2c9',x,y+.43,d/2+.04,.009);if(index===0||index===3)block(g,.8,.035,.04,'#c5d2c9',x,y+.43,d/2+.04,.009)}
+  // Rear elevations remain finished when the campus is rotated.
+  for(let k=0;k<4;k++){const x=-1.55+k*1.035;block(g,.78,.64,.025,glass,x,y+.43,-d/2-.019,.006);block(g,.81,.055,.13,'#a9bbb7',x,y+.1,-d/2-.055);block(g,.035,.68,.045,'#c5d2c9',x,y+.43,-d/2-.04,.009);if(index===0||index===3)block(g,.8,.035,.04,'#c5d2c9',x,y+.43,-d/2-.04,.009)}
   for(const s of[-1,1])for(let k=0;k<3;k++){const z=-1.05+k*1.05;block(g,.028,.63,.74,glass,s*(w/2+.015),y+.43,z);block(g,.08,.04,.8,'#c5d2c9',s*(w/2+.04),y+.1,z);block(g,.04,.65,.035,'#c5d2c9',s*(w/2+.04),y+.43,z)}
   // Coloured recessed strips, not a progress indicator.
   block(g,.13,.86,.12,accent,-w/2+.13,y+.43,d/2+.04)
