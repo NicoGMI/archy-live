@@ -3,6 +3,7 @@ import {tx,texMat} from './textures.js'
 import {M,label,bubble,trainer} from './props.js'
 import {ORD,LB,SC} from './shared.jsx'
 import {groupedRooms} from './rooms.js'
+import {BIOMES} from './city.js'
 import {logoBoard,youtubeBadge} from './branding.js'
 // Maison « en coupe » façon Sims : une salle par tâche de l'univers, rangées par étages. Façade ouverte vers la place.
 export const RW=3.4,RH=2.6,RD=3.2,SLAB=.22
@@ -89,8 +90,8 @@ export function buildInterior(u,tasks){
   for(let r=0;r<=rows;r++){const y=r*(RH+SLAB)-SLAB/2;const sl=new THREE.Mesh(new THREE.BoxGeometry(W+.3,SLAB,RD+.15),texMat(tx('plaster','#e9d3ad',[4,1])));sl.position.set(0,y+(r===0?.0:0),0.02);if(r>0&&r<rows)root.add(sl)}
   // cadre extérieur (montants)
   for(let c=0;c<=cols;c++){const p=new THREE.Mesh(new THREE.BoxGeometry(.14,Hh,RD+.2),M('#8a6a46'));p.position.set(-W/2+c*RW,Hh/2,0);root.add(p)}
-  const rc=texMat(tx('roof','#ffffff',[3,1]),{color:new THREE.Color(u.color).lerp(new THREE.Color('#c98a6a'),.3)})
-  const roof=new THREE.Mesh(new THREE.BoxGeometry(W+.8,.16,1.5),rc);roof.position.set(0,Hh+.55,-RD/2-.35);roof.rotation.x=.75;root.add(roof)
+  const b=BIOMES[u.district]||BIOMES.formation;const rc=texMat(tx('roof','#ffffff',[3,1]),{color:new THREE.Color(b.roof)})
+  const roof=new THREE.Mesh(new THREE.BoxGeometry(W+.8,.16,1.5),rc);roof.position.set(0,Hh+.55,-RD/2-.35);roof.rotation.x=u.district==='etudiant'?0:.75;root.add(roof)
   const back=new THREE.Mesh(new THREE.BoxGeometry(W+.3,.5,.1),texMat(tx('plaster','#e9d3ad',[4,1])));back.position.set(0,Hh+.2,-RD/2);root.add(back)
   const sign=label(`${u.emoji||''} ${u.name}`,u.color,50);sign.position.set(0,Hh+1.1,-.6);sign.scale.multiplyScalar(1.15);root.add(sign)
   const brand=logoBoard(u.id,1.7,.65)||(u.id==='phil'?youtubeBadge():null);if(brand){brand.position.set(0,Hh+1.9,-.6);root.add(brand)}

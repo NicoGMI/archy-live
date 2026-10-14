@@ -4,6 +4,7 @@ import {Toggle,useData,SC,LB,ORD,fmt,ActionBar} from './shared.jsx'
 import {groupedRooms,roomOf,LOGOS} from './rooms.js'
 import {logoBoard,youtubeBadge} from './branding.js'
 import YoutubeStats from './YoutubeStats.jsx'
+import {BIOMES,districtFor,cityRoutes,drawRoads,biomeTree,distanceToRoad,pointAlong} from './city.js'
 import {CONFIG} from './config.js'
 import {tx,texMat} from './textures.js'
 import {M,label,bubble,trainer} from './props.js'
@@ -26,14 +27,15 @@ const disposeTree=(root)=>root.traverse(o=>{o.geometry?.dispose();[].concat(o.ma
 // Position horizontale des fenêtres selon leur nombre.
 const winX=(k,n,W)=>n<=1?-1.5:-W/2+.75+k*(W-1.5-(n>3?0:1.0))/(n-1)
 function house(u,tasks){
+  const district=districtFor(u.id,QUARTERS),biome=BIOMES[district],school=district==='etudiant'
   const g=new THREE.Group(),W=4.6,D=3.6,H=2.3,dk=M('#5a3a22'),wm=new THREE.MeshBasicMaterial({color:'#ffd27a'})
   const add=(geo,mat,x,y,z,o={})=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);if(o.cast)m.castShadow=true;if(o.rx)m.rotation.x=o.rx;if(o.ry)m.rotation.y=o.ry;g.add(m);return m}
   const B=(w,h,d)=>new THREE.BoxGeometry(w,h,d)
-  const wall=add(B(W,H,D),texMat(tx('plaster','#f4dcb8',[2,1])),0,H/2+.15,0,{cast:true});wall.receiveShadow=true
+  const wall=add(B(W,H,D),texMat(tx(district==='formation'?'wood':'plaster',...(district==='formation'?[[3,2],biome.wood]:[biome.wood,[2,1]]))),0,H/2+.15,0,{cast:true});wall.receiveShadow=true
   add(B(W+.12,.35,D+.12),texMat(tx('stone',[3,1])),0,.17,0)
   const sh=new THREE.Shape();sh.moveTo(-D/2-.45,0);sh.lineTo(D/2+.45,0);sh.lineTo(.18,1.5);sh.lineTo(-.18,1.5);sh.closePath()
   const rg=new THREE.ExtrudeGeometry(sh,{depth:W+.9,bevelEnabled:false});rg.translate(0,0,-(W+.9)/2);rg.rotateY(Math.PI/2)
-  add(rg,texMat(tx('roof','#ffffff',[2,1]),{color:new THREE.Color(u.color).lerp(new THREE.Color('#c98a6a'),.3)}),0,H+.15,0,{cast:true})
+  add(rg,texMat(tx('roof','#ffffff',[2,1]),{color:new THREE.Color(biome.roof)}),0,H+.15,0,{cast:true})
   add(B(W+.5,.14,D+.5),M('#ffffff'),0,H+.18,0)
   // porte, poignée, imposte, auvent, perron
   add(B(.9,1.5,.12),texMat(tx('wood',[1,1],'#8a5a2c')),0,.9,D/2+.05)
@@ -65,6 +67,19 @@ function house(u,tasks){
     add(B(2.7,.18,.75),M('#fff4dd'),0,2.66,D/2+.5)
     const flag=new THREE.Group();flag.add(new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,1.5,6),M('#eee')));const f=new THREE.Mesh(B(.7,.42,.025),M(u.color));f.position.set(.35,.5,0);flag.add(f);flag.position.set(-2.65,.75,D/2+.4);g.add(flag)
   }
+  if(school){
+    while(g.children.length){const o=g.children[0];g.remove(o);disposeTree(o)}
+    add(B(W,4.5,D),texMat(tx('plaster',biome.wood,[3,2])),0,2.25,0,{cast:true})
+    add(B(W+.5,.22,D+.5),M(biome.roof),0,4.6,0,{cast:true})
+    for(let row=0;row<3;row++)for(let k=0;k<5;k++){const x=-1.8+k*.9;add(B(.63,.85,.07),M('#fff'),x,.9+row*1.25,D/2+.04);add(B(.5,.7,.09),M('#6b9cb1'),x,.9+row*1.25,D/2+.1)}
+    add(B(1.0,1.55,.1),M('#314c59'),0,.8,D/2+.16);add(B(2.0,.12,.9),M('#e8e5d8'),0,.16,D/2+.4)
+    add(B(1.6,.14,.7),M(biome.roof),0,1.7,D/2+.25)
+    const brand=logoBoard(u.id,1.8,.7);if(brand){brand.position.set(0,4.9,D/2+.1);g.add(brand)}
+    for(const sd of[-1,1]){const pot=add(new THREE.CylinderGeometry(.24,.2,.35,8),M('#798c91'),sd*1.6,.3,D/2+.45);add(new THREE.SphereGeometry(.35,10,8),M(biome.leaf),sd*1.6,.7,D/2+.45)}
+  }
+  if(district==='formation'){for(let side of[-1,1])add(B(.18,2.4,.18),M('#442e20'),side*2.2,1.2,D/2+.12);for(let j=0;j<8;j++)add(B(W+.05,.035,.03),M('#63412b'),0,.3+j*.26,D/2+.04)}
+  if(district==='media'){const chimney=add(B(.7,1.6,.7),M('#8b4635'),-1.5,H+.8,-1.0);add(B(1.8,.6,.07),M('#ac603e'),1.15,1.8,D/2+.2)}
+  if(district==='perso'){for(let k=0;k<6;k++)add(B(.08,.65,.08),M('#fff5e7'),-2+k*.8,.4,D/2+1);add(B(4.3,.08,.06),M('#fff5e7'),0,.65,D/2+1)}
   return g}
 
 export default function MapView(){
@@ -93,12 +108,15 @@ export default function MapView(){
     const plaza=new THREE.Mesh(new THREE.CircleGeometry(4.2,48),texMat(tx('plaza',2)));plaza.rotation.x=-Math.PI/2;plaza.position.y=.05;plaza.receiveShadow=true;scene.add(plaza)
     const ringp=new THREE.Mesh(new THREE.RingGeometry(8.3,9.5,64),texMat(tx('path',1,1)));ringp.rotation.x=-Math.PI/2;ringp.position.y=.045;scene.add(ringp)
     const d=new THREE.Object3D()
-    // quartiers : dallage + panneau
+    const routes=cityRoutes(PLAN,QUARTERS);drawRoads(scene,routes.roads)
+    // quartiers : biome + panneau
     Object.entries(QUARTERS).forEach(([k,q])=>{const pts=q.ids.map(id=>PLAN[id]),rad=Math.max(6.5,...pts.map(p=>Math.hypot(p[0]-q.c[0],p[1]-q.c[1])+5))
-      const pa=new THREE.Mesh(new THREE.CircleGeometry(rad,40),texMat(tx('grass',3),{color:{formation:'#e3c98a',etudiant:'#bcd9a0',ngmi:'#cdb4e8',media:'#f0b99a',perso:'#f2c4cf',admin:'#a9d4e6'}[k]||'#ddd'}));pa.rotation.x=-Math.PI/2;pa.position.set(q.c[0],.032,q.c[1]);pa.receiveShadow=true;scene.add(pa)
+      const pa=new THREE.Mesh(new THREE.CircleGeometry(rad,40),texMat(tx('grass',3),{color:BIOMES[k].ground}));pa.rotation.x=-Math.PI/2;pa.position.set(q.c[0],.04,q.c[1]);pa.receiveShadow=true;scene.add(pa)
       const L=Math.hypot(q.c[0],q.c[1]),sx=q.c[0]-q.c[0]/L*(rad*.85),sz=q.c[1]-q.c[1]/L*(rad*.85)
       const pole=new THREE.Mesh(new THREE.CylinderGeometry(.07,.09,2,6),M('#5b3a29'));pole.position.set(sx,1,sz);scene.add(pole)
-      const lb2=label(q.n,'#fff',44);lb2.scale.multiplyScalar(.85);lb2.position.set(sx,2.5,sz);scene.add(lb2)})
+      const lb2=label(q.n,'#fff',44);lb2.scale.multiplyScalar(.85);lb2.position.set(sx,2.5,sz);scene.add(lb2)
+      const biome=BIOMES[k];for(let i=0;i<18;i++){const a=i/18*Math.PI*2,x=q.c[0]+Math.cos(a)*(rad-.8),z=q.c[1]+Math.sin(a)*(rad-.8);if(distanceToRoad(x,z,routes.roads)<1.5||pts.some(p=>Math.hypot(x-p[0],z-p[1])<4))continue;scene.add(biomeTree(biome.kind,biome.leaf,x,z,.7+(i%3)*.1))}
+      const sign=label(biome.name,biome.roof,42);sign.position.set(q.c[0],.4,q.c[1]+rad-1);sign.scale.multiplyScalar(.7);scene.add(sign)})
     // exclusion zones
     const slots=Object.keys(PLAN).map((id,i)=>slotPos(i,id))
     // bureau d'Archy
@@ -151,7 +169,7 @@ export default function MapView(){
     // étang
     const pondTex=tx('water');const pond=new THREE.Mesh(new THREE.CircleGeometry(5,40),new THREE.MeshBasicMaterial({map:tx('water')}));pond.rotation.x=-Math.PI/2;pond.position.set(-26,.06,14);pond.scale.set(1.4,1,1);scene.add(pond)
     const bank=new THREE.Mesh(new THREE.CircleGeometry(5.6,40),M('#e7dcae'));bank.rotation.x=-Math.PI/2;bank.position.set(-26,.04,14);bank.scale.set(1.4,1,1);scene.add(bank)
-    const free=(x,z,m=0)=>{const rr=Math.hypot(x,z);if(rr<17+m)return false;for(const s of slots){const L2=s.x*s.x+s.z*s.z,u=Math.max(0,Math.min(1,(x*s.x+z*s.z)/L2)),dx=x-s.x*u,dz=z-s.z*u;if(dx*dx+dz*dz<(5.5+m)**2||Math.hypot(x-s.x,z-s.z)<8+m)return false}if(Math.hypot((x+26)/1.4,z-14)<6.4+m)return false;return true}
+    const free=(x,z,m=0)=>{const rr=Math.hypot(x,z);if(Object.values(QUARTERS).some(q=>Math.hypot(x-q.c[0],z-q.c[1])<Math.max(7,...q.ids.map(id=>Math.hypot(PLAN[id][0]-q.c[0],PLAN[id][1]-q.c[1])+5))))return false;if(rr<17+m||distanceToRoad(x,z,routes.roads)<2+m)return false;for(const s of slots)if(Math.hypot(x-s.x,z-s.z)<6+m)return false;if(Math.hypot((x+26)/1.4,z-14)<6.4+m)return false;return true}
     // arbres (instanciés)
     const trunkG=new THREE.CylinderGeometry(.2,.3,1.3,6),canopyG=new THREE.IcosahedronGeometry(1.25,0),pineG=new THREE.ConeGeometry(1.1,1.7,7)
     const NT=mobile?170:300,tr=new THREE.InstancedMesh(trunkG,M('#7a4b26'),NT),cn=new THREE.InstancedMesh(canopyG,M('#ffffff'),NT),pn=new THREE.InstancedMesh(pineG,M('#ffffff'),NT*2)
@@ -199,7 +217,7 @@ export default function MapView(){
     const closeInterior=()=>{if(inter){dyn.remove(inter);disposeInterior(inter);inter=null}dyn.children.forEach(o=>{if(o.userData.hid){o.visible=true;o.userData.hid=false}});Object.values(houses).forEach(h=>h.visible=true);Object.values(signs).forEach(h=>h.visible=true);cam.clearViewOffset()}
     const openInterior=(id,move)=>{const dd=dataRef.current,u=dd&&dd.universes.find(x=>x.id===id),sp=slotOf[id];if(!u||!sp)return
       closeInterior();const ts=dd.tasks.filter(t=>t.universe===id);inter=buildInterior(u,ts.length?ts:[{id:'_vide',universe:id,status:'queued',title:'Rien en cours',note:'Aucune tâche pour le moment'}]);const S=.85,y=hill(sp.x,sp.z)
-      inter.scale.setScalar(S);inter.position.set(sp.x,y,sp.z);inter.rotation.y=Math.atan2(-sp.x,-sp.z);inter.userData.uni=id;dyn.add(inter)
+      inter.scale.setScalar(S);inter.position.set(sp.x,y+.2,sp.z);inter.rotation.y=Math.atan2(-sp.x,-sp.z);inter.userData.uni=id;dyn.add(inter)
       dyn.children.forEach(o=>{if(o!==inter&&o.userData.uni===id&&o.userData.hid!==false)o.userData.hid=true,o.visible=false})
       if(houses[id])houses[id].visible=false;if(signs[id])signs[id].visible=false
       const {W,H}=inter.userData,asp=W_()/H_(),vt=Math.tan(cam.fov*Math.PI/360),dist=Math.min(48,Math.max(((W*S)/2+1.2)/(vt*asp),((H*S)/2+1.5)/vt*1.15,9.5))
@@ -222,16 +240,13 @@ export default function MapView(){
         const ts=dd.tasks.filter(t=>t.universe===u.id);if(!ts.length&&!PLAN[u.id])return
         const sp=slotPos(i,u.id),th=Math.atan2(-sp.x,-sp.z),ux=-sp.x/sp.r,uz=-sp.z/sp.r,px=-uz,pz=ux,len=sp.r-3-4.2
         const h=house(u,ts);h.userData.uni=u.id;h.scale.setScalar(.85);h.position.set(sp.x,hill(sp.x,sp.z),sp.z);h.rotation.y=th;houses[u.id]=h;dyn.add(h);if(ts.some(t=>t.status==='active')){h.updateMatrixWorld(true);const cp=h.localToWorld(new THREE.Vector3(1.15,4.4,-.36));for(let k=0;k<5;k++){const sm=new THREE.Sprite(new THREE.SpriteMaterial({map:smokeTex,transparent:true,depthWrite:false,opacity:.5}));sm.userData.sm={x:cp.x,y:cp.y,z:cp.z,ph:k/5,u:u.id};dyn.add(sm);smokes.push(sm)}};h.traverse(o=>{if(o.userData.act)glow.push(o)})
-        // chemin vers le bureau central
-        const path=new THREE.Mesh(new THREE.PlaneGeometry(1.5,len),texMat(tx('path',1,Math.round(len/1.5))));path.rotation.x=-Math.PI/2;path.position.set(0,0,0)
-        const pg=new THREE.Group();pg.position.set(sp.x+ux*(3+len/2),.05,sp.z+uz*(3+len/2));pg.rotation.y=Math.atan2(ux,uz);pg.add(path);dyn.add(pg)
         const sg=label(`${u.name}${ts.some(t=>t.status==='active')?' ●':''}`,u.color,52);sg.position.set(sp.x,hill(sp.x,sp.z)+6.3,sp.z);sg.userData.uni=u.id;signs[u.id]=sg;dyn.add(sg);slotOf[u.id]=sp
         const notices=(dd.alerts||[]).filter(a=>a.universe===u.id);if(notices.length){const last=notices[notices.length-1];const al=label((last.icon||"✉")+" "+(notices.length>1?notices.length+" · ":"")+last.text.slice(0,36),"#f59e0b",42,"#fff7df","#7a3d00");al.position.set(sp.x,hill(sp.x,sp.z)+8.7,sp.z);al.userData.uni=u.id;al.userData.baseY=al.position.y;dyn.add(al);alertBubbles.push(al)}
         const door={x:sp.x+ux*2.9,z:sp.z+uz*2.9}
         ts.filter(t=>t.status==='active').forEach((t,k)=>{const w=trainer(u.color);w.scale.setScalar(1.45);w.userData.uni=u.id;dyn.add(w)
           const lb=label(t.title.length>24?t.title.slice(0,23)+'…':t.title,'#16a34a',40);lb.scale.multiplyScalar(.55);lb.position.set(0,1.95,0);w.add(lb)
           const b=bubble('!','#16a34a');b.position.set(0,1.55,0);w.add(b)
-          actors.push({w,type:'walk',sp,px,pz,off:(k-.3)*.7,ph:i*1.3+k*2.1,spd:.5+.1*k})})
+          actors.push({w,type:'walk',route:routes.paths[u.id],sp,px,pz,off:(k-.3)*.7,ph:i*1.3+k*2.1,spd:.5+.1*k})})
         ts.filter(t=>t.status!=='active'&&t.status!=='done').sort((a,b)=>ORD[a.status]-ORD[b.status]).slice(0,8).forEach((t,k)=>npc(u,ts,t,k,door,px,pz,ux,uz,i))
       })
       r.shadowMap.needsUpdate=true
@@ -253,9 +268,8 @@ export default function MapView(){
     let stop=false;const clock=new THREE.Clock()
     const loop=()=>{if(stop)return;requestAnimationFrame(loop);const t=clock.getElapsedTime()
       actors.forEach(o=>{if(o.type!=='walk')return;const w=o.w
-        const raw=Math.sin(t*o.spd+o.ph)*1.5,mov=Math.abs(raw)<1,s=(Math.max(-1,Math.min(1,raw))+1)/2,dist=3.9+(o.sp.r-3.2-3.9)*s
-        const dv=mov?(Math.cos(t*o.spd+o.ph)>=0?1:-1):(raw<0?-1:1)
-        const X=(o.sp.x/o.sp.r)*dist+o.px*o.off,Z=(o.sp.z/o.sp.r)*dist+o.pz*o.off;w.position.set(X,hill(X,Z),Z);w.rotation.y=Math.atan2(o.sp.x*dv,o.sp.z*dv)
+        const raw=Math.sin(t*o.spd+o.ph)*1.3,mov=Math.abs(raw)<1,s=(Math.max(-1,Math.min(1,raw))+1)/2,dv=Math.cos(t*o.spd+o.ph)>=0?1:-1
+        const p=pointAlong(o.route||[[0,0],[o.sp.x,o.sp.z]],s),L=Math.hypot(p.dx,p.dz)||1,X=p.x-p.dz/L*o.off*.3,Z=p.z+p.dx/L*o.off*.3;w.position.set(X,hill(X,Z),Z);w.rotation.y=Math.atan2(p.dx*dv,p.dz*dv)
         const sw=mov?Math.sin(t*9+o.ph)*.7:0;w.userData.legs[0].rotation.x=sw;w.userData.legs[1].rotation.x=-sw;w.userData.arms[0].rotation.x=-sw*.8;w.userData.arms[1].rotation.x=sw*.8})
       if(flight&&camGoal){const k=Math.min(1,(performance.now()-camGoal.s)/1100),e=k*k*(3-2*k);cam.position.lerpVectors(camGoal.p0,camGoal.p,e);ctl.target.lerpVectors(camGoal.t0,camGoal.t,e);if(k>=1){flight=0;camGoal=null}}
       if(inter)inter.userData.walkers.forEach((w,i)=>{const k=w.userData.kind,b=w.userData.ry;if(k==="waiting"||k==="scheduled"||k==="blocked"){if(w.userData.bx===undefined)w.userData.bx=w.position.x;w.position.x=w.userData.bx+Math.sin(t*.6+i)*.4;w.position.y=.06+Math.abs(Math.sin(t*4+i))*.02}if(k==='active'){w.position.y=.06+Math.abs(Math.sin(t*2.4+i))*.025;w.userData.arms[0].rotation.x=-.5+Math.sin(t*6+i)*.25;w.userData.arms[1].rotation.x=-.5-Math.sin(t*6+i)*.25}
