@@ -99,6 +99,9 @@ export function campusGround(g){
  for(const [x,z,ry]of[[-8.5,-8,.4],[-7,11,-.2],[8.5,-9,Math.PI/2]])bench(g,x,z,ry);
 
  for(const [x,z]of[[-10,10],[-8,-10],[9,-8],[-2,14],[5,14]]){for(let k=0;k<5;k++){const xx=x+(k-2)*.25;block(g,.025,.18,.025,'#789267',xx,.23,z);const flower=ball(g,.075,['#efc886','#d4a0aa','#f0ddac'][k%3],xx,.34,z);flower.scale.y=.6;}}
+ // A garden-only limestone walk connects the reading grove without changing V21 streets.
+ const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(-11,.14,12),new THREE.Vector3(-8.5,.14,8),new THREE.Vector3(-10,.14,4),new THREE.Vector3(-9.5,.14,0),new THREE.Vector3(-10,.14,-5),new THREE.Vector3(-8.5,.14,-10),new THREE.Vector3(-9,.14,-14)]);
+ const pts=curve.getPoints(72),vertices=[],indices=[];pts.forEach((p,i)=>{const tangent=curve.getTangent(i/72),side=new THREE.Vector3(-tangent.z,0,tangent.x).multiplyScalar(.4);vertices.push(p.x+side.x,p.y,p.z+side.z,p.x-side.x,p.y,p.z-side.z);if(i<72){const k=i*2;indices.push(k,k+2,k+1,k+1,k+2,k+3)}});const walkGeo=new THREE.BufferGeometry();walkGeo.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));walkGeo.setAttribute('uv',new THREE.Float32BufferAttribute(new Float32Array(vertices.length/3*2),2));walkGeo.setIndex(indices);walkGeo.computeVertexNormals();g.add(new THREE.Mesh(walkGeo,mat('#c9cfb8')));
  // Granite paving has subtle joints instead of noisy procedural textures.
  for(let k=0;k<6;k++)block(g,.014,.009,1.7,'#7e9591',7.5+k*.3,.195,10);
  return {water}
