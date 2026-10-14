@@ -18,13 +18,13 @@ function garden(g,x,z,w,d){const ring=new THREE.Mesh(new THREE.CylinderGeometry(
 export function planter(g,x,z,w=1.1){block(g,w,.34,.65,'#dedbd3',x,.23,z,.075);block(g,w-.12,.08,.52,'#6f8056',x,.41,z);for(let i=0;i<3;i++)ball(g,.19,'#71a585',x-w*.3+i*w*.3,.53,z)}
 export function bench(g,x,z,ry=0){const b=new THREE.Group();for(let i=0;i<3;i++)block(b,1.3,.065,.12,'#b99b79',0,.46,i*.13-.13);block(b,1.3,.25,.07,'#b99b79',0,.69,-.24);for(const s of[-1,1]){block(b,.06,.44,.06,'#66777d',s*.48,.23,0);block(b,.06,.65,.06,'#66777d',s*.48,.35,-.21)}b.position.set(x,0,z);b.rotation.y=ry;g.add(b)}
 export function lamp(g,x,z){const t=new THREE.Group();block(t,.07,2,.07,'#70848b',0,1,0);block(t,.45,.055,.22,'#eaf0e9',.16,2.02,0);block(t,.34,.025,.16,'#ffffe5',.16,1.99,0);t.position.set(x,0,z);g.add(t)}
-export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,floors=[3,4,3,4,3][index],fh=1.02,accent=['#738f8a','#b88464','#839895','#64878b','#87a29b'][index],glass=['#527b85','#61848b','#607a82','#476e7b','#4f7982'][index]
+export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,floors=[3,4,3,4,3][index],fh=1.02,accent=['#4e8578','#c28c57','#8a9c73','#4f8b91','#789c8d'][index],glass=['#437b89','#608694','#677f7b','#3c718b','#54868b'][index]
  block(g,5.35,.2,4.5,'#c6ceca',0,.12,0,.08);block(g,5.15,.1,4.3,'#eeeee6',0,.26,0)
  block(g,w,.8,d,'#e9e7dc',0,.68,0)
  for(let row=0;row<floors;row++){const start=g.children.length,y=1.1+row*fh;block(g,w,.91,d,['#dddcd1','#e2d6c6','#d1dbd6','#cbd7d7','#dbdfce'][index],0,y+.42,0)
   softBlock(g,w+.17,.12,d+.18,accent,0,y+.94,0);softBlock(g,w+.29,.08,d+.30,'#e4e8de',0,y+1.005,0)
   // Windows recessed behind continuous frames. Side elevations have the same level of detail.
-  for(let k=0;k<4;k++){const x=-1.55+k*1.035;block(g,.78,.64,.025,glass,x,y+.43,d/2+.019,.006);block(g,.81,.055,.13,'#a9bbb7',x,y+.1,d/2+.055);block(g,.035,.68,.045,'#c5d2c9',x,y+.43,d/2+.04,.009);block(g,.8,.035,.04,'#c5d2c9',x,y+.43,d/2+.04,.009)}
+  for(let k=0;k<4;k++){const x=-1.55+k*1.035;block(g,.78,.64,.025,glass,x,y+.43,d/2+.019,.006);block(g,.81,.055,.13,'#a9bbb7',x,y+.1,d/2+.055);block(g,.035,.68,.045,'#c5d2c9',x,y+.43,d/2+.04,.009);if(index===0||index===3)block(g,.8,.035,.04,'#c5d2c9',x,y+.43,d/2+.04,.009)}
   for(const s of[-1,1])for(let k=0;k<3;k++){const z=-1.05+k*1.05;block(g,.028,.63,.74,glass,s*(w/2+.015),y+.43,z);block(g,.08,.04,.8,'#c5d2c9',s*(w/2+.04),y+.1,z);block(g,.04,.65,.035,'#c5d2c9',s*(w/2+.04),y+.43,z)}
   // Coloured recessed strips, not a progress indicator.
   block(g,.13,.86,.12,accent,-w/2+.13,y+.43,d/2+.04)
@@ -52,6 +52,10 @@ export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,fl
  if(index===3){block(g,1.7,.9,1.2,'#b5cbbd',-.8,roof+.56,.1);block(g,1.85,.12,1.35,'#587878',-.8,roof+1.04,.1);for(let k=0;k<3;k++)block(g,.4,.5,.025,glass,-1.35+k*.5,roof+.56,.72)}
  if(index===4){block(g,1.65,.45,1.25,'#aac6c4',.15,roof+.4,-.15);block(g,1.8,.12,1.4,'#64878b',.15,roof+.69,-.15);for(let k=0;k<3;k++)block(g,.08,.45,1.25,'#dde5df',-.55+k*.7,roof+.4,-.15)}
  if(index===2){for(const sd of[-1,1]){block(g,.25,1.2,.3,'#d8d6c4',sd*1.17,.83,d/2+.4);block(g,.4,.13,.5,'#f0ead7',sd*1.17,1.47,d/2+.4)}block(g,2.9,.16,.68,'#a6b8a6',0,1.58,d/2+.4)}
+ // Copper fins, limestone columns and a blue-green corner give each school a readable signature.
+ if(index===1){for(let k=0;k<6;k++)block(g,.075,roof-1.15,.20,'#c49a70',-.78+k*.28,(roof+1.15)/2,d/2+.18);softBlock(g,1.72,.08,.32,'#d7b389',-.08,roof+.05,d/2+.18)}
+ if(index===4){for(const x of[-1.97,1.97]){softBlock(g,.25,roof-.28,.28,'#e2dfbd',x,(roof+.28)/2,d/2+.10);block(g,.045,roof-.4,.04,'#adc09d',x,roof/2,d/2+.26)}}
+ if(index===0){softBlock(g,.64,roof-.5,.42,'#548e83',-2.0,(roof+.5)/2,1.50);for(let k=0;k<4;k++)block(g,.58,.055,.48,'#d6dec5',-2.0,1.15+k*1.02,1.50)}
  // Ground-floor lobby, canopy, layered steps, framed door and railings.
  block(g,1.35,.65,.07,glass,0,.68,d/2+.03);block(g,.065,.69,.09,'#c5d3ce',0,.68,d/2+.08)
  softBlock(g,1.85,.16,1.12,accent,0,1.04,d/2+.4);for(const s of[-1,1])block(g,.055,.77,.055,'#bcc9c3',s*.74,.65,d/2+.73)
@@ -65,7 +69,7 @@ export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,fl
  // A low-poly depth shell keeps pedestrians behind the building without redrawing window detail.
  g.updateMatrixWorld(true);const shells=[];g.traverse(o=>{if(!o.isMesh||!o.material?.isMeshLambertMaterial)return;o.geometry.computeBoundingBox();const b=o.geometry.boundingBox,size=new THREE.Vector3();b.getSize(size);if(size.x<.3||size.y<.08||size.z<.3)return;const geo=new THREE.BoxGeometry(size.x,size.y,size.z),center=new THREE.Vector3();b.getCenter(center);geo.translate(center.x,center.y,center.z);geo.applyMatrix4(o.matrixWorld);shells.push(geo)});g.userData.depthGeometry=mergeGeometries(shells);shells.forEach(geo=>geo.dispose());g.userData.uni=u.id;return g}
 export function campusGround(g){
- block(g,26,.55,34,'#748f8c',0,-.3,0,.22);block(g,25.8,.10,33.8,'#a5c995',0,.0,0,.2)
+ block(g,26,.55,34,'#748f8c',0,-.3,0,.22);block(g,25.8,.10,33.8,'#b6d39b',0,.0,0,.2)
  // Layout and roads are the original V21 geometry. A pocket garden fills the vacant west side.
  block(g,4,.12,6,'#8faba0',10,.09,8);block(g,3.7,.04,5.7,'#b3c9ad',10,.17,8)
  const f=new THREE.Group();const basin=new THREE.Mesh(new THREE.CylinderGeometry(1.05,1.13,.25,40),mat('#e9eae1'));basin.position.y=.25;basin.receiveShadow=true;f.add(basin);const water=new THREE.Mesh(new THREE.CircleGeometry(.92,40),mat('#84c7d5',.24));water.rotation.x=-Math.PI/2;water.position.y=.38;f.add(water);const center=new THREE.Mesh(new THREE.CylinderGeometry(.18,.27,.5,16),mat('#e3e9df'));center.position.y=.6;f.add(center);ball(f,.25,'#c7e2d3',0,.89,0);f.position.set(10,0,8);g.add(f)
