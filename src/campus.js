@@ -4,12 +4,12 @@ import * as THREE from 'three'
 import {logoBoard} from './branding.js'
 const cache=new Map()
 export const mat=(color,roughness=.72)=>{const k=color+roughness;if(!cache.has(k))cache.set(k,new THREE.MeshLambertMaterial({color}));return cache.get(k)}
-function bevelBox(w,h,d,r){const shape=new THREE.Shape();shape.moveTo(-w/2+r,-d/2);shape.lineTo(w/2-r,-d/2);shape.quadraticCurveTo(w/2,-d/2,w/2,-d/2+r);shape.lineTo(w/2,d/2-r);shape.quadraticCurveTo(w/2,d/2,w/2-r,d/2);shape.lineTo(-w/2+r,d/2);shape.quadraticCurveTo(-w/2,d/2,-w/2,d/2-r);shape.lineTo(-w/2,-d/2+r);shape.quadraticCurveTo(-w/2,-d/2,-w/2+r,-d/2);const geo=new THREE.ExtrudeGeometry(shape,{depth:h,bevelEnabled:false,curveSegments:2});geo.rotateX(-Math.PI/2);geo.translate(0,-h/2,0);return geo}
-export function block(g,w,h,d,c,x,y,z,r=.045){const o=new THREE.Mesh((w*h*d>60&&Math.min(w,h,d)>.2?bevelBox(w,h,d,Math.min(r,w/4,h/4,d/4)):new THREE.BoxGeometry(w,h,d)),mat(c));o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;g.add(o);return o}
-const ball=(g,r,c,x,y,z)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(r,8,6),mat(c));o.position.set(x,y,z);o.castShadow=true;g.add(o);return o}
+function bevelBox(w,h,d,r){w-=r*2;d-=r*2;const shape=new THREE.Shape();shape.moveTo(-w/2+r,-d/2);shape.lineTo(w/2-r,-d/2);shape.quadraticCurveTo(w/2,-d/2,w/2,-d/2+r);shape.lineTo(w/2,d/2-r);shape.quadraticCurveTo(w/2,d/2,w/2-r,d/2);shape.lineTo(-w/2+r,d/2);shape.quadraticCurveTo(-w/2,d/2,-w/2,d/2-r);shape.lineTo(-w/2,-d/2+r);shape.quadraticCurveTo(-w/2,-d/2,-w/2+r,-d/2);const geo=new THREE.ExtrudeGeometry(shape,{depth:Math.max(.005,h-r*2),bevelEnabled:true,bevelThickness:r,bevelSize:r,bevelSegments:1,steps:1,curveSegments:2});geo.rotateX(-Math.PI/2);geo.translate(0,-h/2+r,0);return geo}
+export function block(g,w,h,d,c,x,y,z,r=.045){const o=new THREE.Mesh((w*h*d>5&&Math.min(w,h,d)>.18?bevelBox(w,h,d,Math.min(r,w/4,h/4,d/4)):new THREE.BoxGeometry(w,h,d)),mat(c));o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;g.add(o);return o}
+const ball=(g,r,c,x,y,z)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(r,10,6),mat(c));o.position.set(x,y,z);o.castShadow=true;g.add(o);return o}
 export function tree(g,x,z,s=1){const t=new THREE.Group();const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.085,.13,1.1,8),mat('#ddd9c9'));trunk.position.y=.55;trunk.castShadow=true;t.add(trunk);for(let k=0;k<4;k++){const bark=block(t,.025,.06,.13,'#657b74',.078,.3+k*.22,0,.005);bark.rotation.z=.18}
- const crown=ball(t,.48,'#4e8f76',0,1.35,0);crown.scale.set(.85,1.3,.85);ball(t,.29,'#8cbaa0',.18,1.62,.07);t.position.set(x,.06,z);t.scale.setScalar(s);g.add(t)}
-export function planter(g,x,z,w=1.1){block(g,w,.34,.65,'#dedbd3',x,.23,z);block(g,w-.12,.08,.52,'#6f8056',x,.41,z);for(let i=0;i<3;i++)ball(g,.19,'#71a585',x-w*.3+i*w*.3,.53,z)}
+ const crown=ball(t,.48,'#3f896e',0,1.35,0);crown.scale.set(.85,1.3,.85);ball(t,.29,'#8cbaa0',.18,1.62,.07);t.position.set(x,.06,z);t.scale.setScalar(s);g.add(t)}
+export function planter(g,x,z,w=1.1){block(g,w,.34,.65,'#dedbd3',x,.23,z,.075);block(g,w-.12,.08,.52,'#6f8056',x,.41,z);for(let i=0;i<3;i++)ball(g,.19,'#71a585',x-w*.3+i*w*.3,.53,z)}
 export function bench(g,x,z,ry=0){const b=new THREE.Group();for(let i=0;i<3;i++)block(b,1.3,.065,.12,'#b99b79',0,.46,i*.13-.13);block(b,1.3,.25,.07,'#b99b79',0,.69,-.24);for(const s of[-1,1]){block(b,.06,.44,.06,'#66777d',s*.48,.23,0);block(b,.06,.65,.06,'#66777d',s*.48,.35,-.21)}b.position.set(x,0,z);b.rotation.y=ry;g.add(b)}
 export function lamp(g,x,z){const t=new THREE.Group();block(t,.07,2,.07,'#70848b',0,1,0);block(t,.45,.055,.22,'#eaf0e9',.16,2.02,0);block(t,.34,.025,.16,'#ffffe5',.16,1.99,0);t.position.set(x,0,z);g.add(t)}
 export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,floors=[3,4,3,4,3][index],fh=1.02,accent=['#738f8a','#b88464','#839895','#64878b','#87a29b'][index],glass=['#527b85','#61848b','#607a82','#476e7b','#4f7982'][index]
@@ -88,6 +88,8 @@ export function campusGround(g){
  for(const [x,z,w,d]of[[-9,-10,4,7],[-9,11,4,6],[9,-10,4,5],[-4,-14,4,2],[3,14,4,2]]){block(g,w,.04,d,'#91ad94',x,.07,z,.09);for(let i=0;i<5;i++){const xx=x+(i%3-1)*w*.28,zz=z+(Math.floor(i/3)-.5)*d*.55;ball(g,.26,['#6b9273','#8aaa80','#a0b68b'][i%3],xx,.31,zz)}}
  for(const [x,z,s]of[[-10,-9,1.3],[-8,-11,1.2],[-10,12,1.2],[-8,10,1.15],[9,-12,1.25],[10,-8,1.3],[-3,-15,1.1],[2,15,1.15]])tree(g,x,z,s);
  for(const [x,z,ry]of[[-8.5,-8,.4],[-7,11,-.2],[8.5,-9,Math.PI/2]])bench(g,x,z,ry);
+
+ for(const [x,z]of[[-10,10],[-8,-10],[9,-8],[-2,14],[5,14]]){for(let k=0;k<5;k++){const xx=x+(k-2)*.25;block(g,.025,.18,.025,'#789267',xx,.23,z);const flower=ball(g,.075,['#efc886','#d4a0aa','#f0ddac'][k%3],xx,.34,z);flower.scale.y=.6;}}
  // Granite paving has subtle joints instead of noisy procedural textures.
  for(let k=0;k<6;k++)block(g,.014,.009,1.7,'#7e9591',7.5+k*.3,.195,10);
  return {water}
