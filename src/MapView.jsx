@@ -112,11 +112,15 @@ export default function MapView(){
     // quartiers : biome + panneau
     Object.entries(QUARTERS).forEach(([k,q])=>{const pts=q.ids.map(id=>PLAN[id]),rad=Math.max(6.5,...pts.map(p=>Math.hypot(p[0]-q.c[0],p[1]-q.c[1])+5))
       const pa=new THREE.Mesh(new THREE.CircleGeometry(rad,40),texMat(tx('grass',3),{color:BIOMES[k].ground}));pa.rotation.x=-Math.PI/2;pa.position.set(q.c[0],.04,q.c[1]);pa.receiveShadow=true;scene.add(pa)
-      const L=Math.hypot(q.c[0],q.c[1]),sx=q.c[0]-q.c[0]/L*(rad*.85),sz=q.c[1]-q.c[1]/L*(rad*.85)
-      const pole=new THREE.Mesh(new THREE.CylinderGeometry(.07,.09,2,6),M('#5b3a29'));pole.position.set(sx,1,sz);scene.add(pole)
-      const lb2=label(q.n,'#fff',44);lb2.scale.multiplyScalar(.85);lb2.position.set(sx,2.5,sz);scene.add(lb2)
+      // Large physical gateway names the quarter. Smaller white signs remain building titles.
+      const L=Math.hypot(q.c[0],q.c[1]),sx=q.c[0]*.66,sz=q.c[1]*.66,arch=new THREE.Group(),style=BIOMES[k];arch.position.set(sx,.06,sz);arch.rotation.y=Math.atan2(-q.c[0],-q.c[1])
+      const ab=(w,h,dep,c,x,y,z)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,dep),M(c));o.position.set(x,y,z);o.castShadow=true;arch.add(o);return o}
+      for(const side of[-1,1]){ab(.42,3.35,.48,style.roof,side*2.3,1.675,0);ab(.72,.28,.72,'#e8d9b8',side*2.3,.14,0);ab(.62,.25,.65,style.wood,side*2.3,3.38,0)}
+      ab(5.2,.72,.45,style.roof,0,3.6,0);ab(5.5,.16,.65,style.wood,0,4.0,0)
+      const banner=label(q.n.toUpperCase(),style.roof,58,style.roof,'#fff9e7');banner.scale.set(5.1,1.0,1);banner.position.set(sx,4.1,sz);scene.add(banner)
+      const emblem=new THREE.Mesh(new THREE.IcosahedronGeometry(.35,1),M(style.leaf));emblem.position.set(0,4.5,0);arch.add(emblem);scene.add(arch)
       const biome=BIOMES[k];for(let i=0;i<18;i++){const a=i/18*Math.PI*2,x=q.c[0]+Math.cos(a)*(rad-.8),z=q.c[1]+Math.sin(a)*(rad-.8);if(distanceToRoad(x,z,routes.roads)<1.5||pts.some(p=>Math.hypot(x-p[0],z-p[1])<4))continue;scene.add(biomeTree(biome.kind,biome.leaf,x,z,.7+(i%3)*.1))}
-      const sign=label(biome.name,biome.roof,42);sign.position.set(q.c[0],.4,q.c[1]+rad-1);sign.scale.multiplyScalar(.7);scene.add(sign)})
+      })
     // exclusion zones
     const slots=Object.keys(PLAN).map((id,i)=>slotPos(i,id))
     // bureau d'Archy
