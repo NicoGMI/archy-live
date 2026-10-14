@@ -2,7 +2,7 @@
   "name": "archy-live",
   "private": true,
   "type": "module",
-  "version": "0.2.0",
+  "version": "0.17.0",
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",

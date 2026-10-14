@@ -18,7 +18,8 @@ function validate(d) {
   return null
 }
 
-export async function onRequestGet({ env }) {
+export async function onRequestGet({ request, env }) {
+  const h=request.headers.get("authorization");if(h&&(!env.ARCHY_WRITE_TOKEN||!safeEq(h.replace(/^Bearer /,""),env.ARCHY_WRITE_TOKEN)))return json('{"error":"forbidden"}',403)
   if (!env.ARCHY) return json('{"error":"KV non configuré"}', 404)
   const v = await env.ARCHY.get('status')
   return v ? json(v) : json('{"error":"aucune donnée"}', 404)

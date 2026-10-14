@@ -19,6 +19,12 @@ const HELP = `Usage : bin/archy <commande> <id> ...
   block <id> "raison"                        bloqué
   sched <id> <univers> "Titre" <date ISO> ["note"]   programmé
   queue <id> <univers> "Titre" ["note"]      en file
+  universe <id> "Nom" <emoji> <#couleur> [quartier]   crée ou met à jour une maison/bâtiment
+  move <id> <univers>                        déplace une tâche dans une autre maison
+  room <id> <pièce>                          range la tâche dans une pièce (ex. prep-cours, archives)
+  alert <univers> "texte" [icône]             alerte flottante au-dessus du bâtiment
+  alert-clear <univers>                      efface les alertes du bâtiment
+  stats youtube '<json>'                     relevé de stats affiché dans le dashboard
   archive [jours]                            retire les tâches terminées depuis plus de N jours (défaut 7)
   help                                       cette aide`
 
@@ -42,7 +48,31 @@ export function apply(d, cmd, args, now = new Date().toISOString()) {
   const log = (text) => d.log.push({ at: now, task: id, text })
   const needUniverse = (u) => { if (!d.universes.some((x) => x.id === u)) throw new Error('univers inconnu: ' + u) }
   let t = d.tasks.find((x) => x.id === id)
-  if (cmd === 'archive') {
+  if (cmd === 'universe') {
+    const [name, emoji, color, district] = r
+    if (!id || !name) throw new Error('universe <id> "Nom" <emoji> <#couleur> [quartier]')
+    let u = d.universes.find((x) => x.id === id)
+    if (!u) { u = { id }; d.universes.push(u) }
+    Object.assign(u, { name, emoji: emoji || u.emoji || '🏠', color: color || u.color || '#94a3b8' })
+    if (district) u.district = district
+    console.log('maison ' + id + ' ok')
+  } else if (cmd === 'move') {
+    if (!t) throw new Error('tâche inconnue: ' + id)
+    needUniverse(r[0]); t.universe = r[0]
+  } else if (cmd === 'room') {
+    if (!t) throw new Error('tâche inconnue: ' + id)
+    if (!r[0]) throw new Error('room <id> <pièce>'); t.room = r[0]
+  } else if (cmd === 'alert') {
+    const [text, icon] = r
+    needUniverse(id); if (!text) throw new Error('alert <univers> "texte" [icône]')
+    d.alerts = (d.alerts || []).filter((a) => Date.parse(now) - Date.parse(a.at) < 864e5)
+    d.alerts.push({ id: Date.now().toString(36), universe: id, icon: icon || '✉️', text, at: now })
+  } else if (cmd === 'alert-clear') {
+    d.alerts = (d.alerts || []).filter((a) => a.universe !== id && a.id !== id)
+  } else if (cmd === 'stats') {
+    let v; try { v = JSON.parse(r[0]) } catch { throw new Error('stats <nom> \'<json>\'') }
+    d.stats = { ...(d.stats || {}), [id]: { ...v, at: v.at || now } }
+  } else if (cmd === 'archive') {
     const days = Number(id ?? 7)
     if (!(days >= 0)) throw new Error('nombre de jours invalide')
     const cut = Date.parse(now) - days * 86400e3
@@ -103,6 +133,13 @@ export function apply(d, cmd, args, now = new Date().toISOString()) {
 function main() {
   const [cmd, ...args] = process.argv.slice(2)
   if (!cmd || cmd === 'help' || cmd === '--help' || cmd === '-h') { console.log(HELP); process.exit(cmd ? 0 : 1) }
+  // Refresh the authoritative snapshot before a remote write, never publish a stale workspace snapshot.
+  const remote=process.env.ARCHY_PUBLISH==='1'||(process.env.ARCHY_PUBLISH!=='0'&&fs.existsSync(path.join(ROOT,'.publish-enabled')))
+  if(remote){
+    const url=process.env.ARCHY_URL||(fs.existsSync(path.join(ROOT,'.publish-url'))?fs.readFileSync(path.join(ROOT,'.publish-url'),'utf8').trim():'')
+    const token=process.env.ARCHY_WRITE_TOKEN||(fs.existsSync(path.join(process.env.HOME,'.archy_write_token'))?fs.readFileSync(path.join(process.env.HOME,'.archy_write_token'),'utf8').trim():'')
+    if(url&&token){try{const text=execFileSync('curl',['--fail','-sS','--max-time','20','-H','Authorization: Bearer '+token,url.replace(/\/$/,'')+'/api/status?t='+Date.now()],{encoding:'utf8'});const live=JSON.parse(text);validate(live);fs.writeFileSync(DATA,JSON.stringify(live,null,2))}catch(e){fail('lecture live impossible, aucune écriture effectuée')}}
+  }
   if (!fs.existsSync(DATA) && fs.existsSync(EXAMPLE)) fs.copyFileSync(EXAMPLE, DATA)
   // verrou : on ne supprime que le sien, libéré avant toute publication
   let got = false

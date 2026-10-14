@@ -9,3 +9,6 @@ dist
 .update.lock
 *.tmp
 public/data/archy-status.json
+
+backups/
+verify*.mjs

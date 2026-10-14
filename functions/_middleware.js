@@ -10,6 +10,8 @@ const page = (msg = '') => new Response(`<!doctype html><html lang="fr"><head><m
 export async function onRequest({ request, env, next }) {
   // L'écriture des données passe par le jeton Bearer vérifié dans functions/api/status.js (pas de cookie pour la CLI).
   if (request.method === 'POST' && new URL(request.url).pathname === '/api/status') return next()
+  // /api/actions avec en-tête Authorization : le jeton est vérifié dans la fonction (CLI d'Archy).
+  if (['/api/actions','/api/status'].includes(new URL(request.url).pathname) && request.headers.get('authorization')) return next()
   const pw = env.ARCHY_PASSWORD
   if (!pw) return new Response('Configuration manquante', { status: 503, headers: { 'cache-control': 'no-store' } })
   const token = await sha('archy-live-v1|' + pw)

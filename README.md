@@ -56,3 +56,22 @@ Tout est dans le plan gratuit. Ne saisis jamais de secret dans le dépôt.
    - Limites du plan gratuit (au moment de l'écriture) : 1 000 écritures KV et 100 000 lectures par jour, 100 000 requêtes Functions par jour. Un onglet ouvert toute la journée fait environ 4 300 requêtes. Dépasser une limite fait échouer les appels, sans facturation.
    - Délai : une mise à jour est visible en général sous 30 s (propagation KV jusqu'à ~1 min, plus le rafraîchissement de 20 s).
    - Sans KV, l'app lit simplement `/data/archy-status.json` (redéploiement nécessaire pour changer les données).
+
+## Village V17
+
+Quartiers et positions libres, intérieurs en coupe et personnages chibi. Les maisons spécialisées ont des salles par type de travail, et une salle vide existe avant de recevoir sa première tâche.
+
+Commandes supplémentaires :
+```
+bin/archy universe <id> "Nom" <emoji> <couleur> [quartier]
+bin/archy move <tache> <maison>
+bin/archy room <tache> <piece>
+bin/archy alert <maison> "texte" [icone]
+bin/archy alert-clear <maison>
+bin/archy stats youtube '<json>'
+bin/archy-actions [pending|all|ack ID...]
+```
+
+Les alertes sont horodatées et affichées au-dessus de la maison puis dans son détail. Les statistiques YouTube affichent l'heure du relevé, pas un compteur en temps réel. Format : `{subscribers, views28d, latest: {title, views, likes}, top: {title, views}, at}`.
+
+Les commandes configurées pour publier relisent `/api/status` avec le jeton avant de modifier les données. Une lecture échouée bloque l'écriture. Le fichier de données privées n'est jamais versionné. Les accès personnels sont protégés par le mot de passe du site.

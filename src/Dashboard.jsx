@@ -1,5 +1,6 @@
 import React,{useMemo,useState} from 'react'
-import {useData,Toggle,SC,LB,fmt,hm,dayKey,ago} from './shared.jsx'
+import {useData,Toggle,ActionBar,SC,LB,fmt,hm,dayKey,ago} from './shared.jsx'
+import YoutubeStats from './YoutubeStats.jsx'
 import {CONFIG} from './config.js'
 const Sec=({title,n,children,accent})=>n===0?null:<section className="sec"><h3 style={accent?{color:accent}:null}>{title}<span>{n}</span></h3>{children}</section>
 function Task({t,d,now,u,open,toggle}){
@@ -11,7 +12,7 @@ function Task({t,d,now,u,open,toggle}){
       <div className="ttl"><span className="uni" style={{color:u?.color}}>{u?.name}</span>{t.status==='active'&&<i className="pulse"/>}<b>{t.title}</b></div>
       <div className="meta"><span className="chip" style={{'--c':SC[t.status]}}>{LB[t.status]}</span>{when&&<span>{when}</span>}</div>
       {t.note&&<div className="note">{t.note}</div>}
-      {open&&<div className="hist">{lg.length?lg.map((l,i)=><div key={i}><time>{fmt(l.at)}</time>{l.text}</div>):<div className="muted">Pas d'historique enregistré</div>}</div>}
+      <ActionBar t={t}/>{open&&<div className="hist">{lg.length?lg.map((l,i)=><div key={i}><time>{fmt(l.at)}</time>{l.text}</div>):<div className="muted">Pas d'historique enregistré</div>}</div>}
     </div></div>}
 export default function Dashboard(){
   const {d,err,now,okAt}=useData(),[uf,setUf]=useState(null),[open,setOpen]=useState({}),[showAll,setAll]=useState(false)
@@ -41,6 +42,8 @@ export default function Dashboard(){
         <div className="seg">{['active','waiting','blocked','scheduled','queued','done'].map(s=>n(s)?<span key={s} style={{flex:n(s),background:SC[s]}}/>:null)}</div>
         <div className="uc">{n('active')} en cours · {n('waiting')+n('blocked')} attente · {n('done')} finis</div></button>})}</div>
     {uf&&<div className="filter">Filtre : <b>{U[uf].name}</b> <button onClick={()=>setUf(null)}>Tout afficher</button></div>}
+    {(!uf||uf==='phil')&&<YoutubeStats stats={d.stats?.youtube}/>}
+    {(d.alerts||[]).filter(a=>!uf||a.universe===uf).map(a=><div key={a.id} className="warn">{a.icon||'✉'} {U[a.universe]?.name} · {a.text} · {fmt(a.at)}</div>)}
     <div className="cols"><div className="colmain">
       <Sec title={"À décider / en attente "+CONFIG.bossOf} n={need.length} accent={SC.waiting}>{need.map(row)}</Sec>
       <Sec title="En cours" n={by('active').length} accent={SC.active}>{by('active').map(row)}</Sec>
