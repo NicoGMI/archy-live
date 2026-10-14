@@ -56,7 +56,7 @@ export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,fl
  if(index===0||index===2){block(g,1.0,.12,1.4,'#c6cebf',-2.65,.3,0);for(let i=0;i<5;i++)block(g,.7,.075,.12,'#c5d7d0',-2.65,.7+i*.06,-.7);for(const z of[-.7,.7]){block(g,.06,.7,.06,'#7c9996',-3.06,.61,z);block(g,.055,.055,1.4,'#7c9996',-3.06,.96,0)}}
  g.userData.uni=u.id;return g}
 export function campusGround(g){
- block(g,26,.55,34,'#748f8c',0,-.3,0,.22);block(g,25.8,.10,33.8,'#aecabc',0,.0,0,.2)
+ block(g,26,.55,34,'#748f8c',0,-.3,0,.22);block(g,25.8,.10,33.8,'#a5c995',0,.0,0,.2)
  // Layout and roads are the original V21 geometry. A pocket garden fills the vacant west side.
  block(g,4,.12,6,'#8faba0',10,.09,8);block(g,3.7,.04,5.7,'#b3c9ad',10,.17,8)
  const f=new THREE.Group();const basin=new THREE.Mesh(new THREE.CylinderGeometry(1.05,1.13,.25,40),mat('#e9eae1'));basin.position.y=.25;basin.receiveShadow=true;f.add(basin);const water=new THREE.Mesh(new THREE.CircleGeometry(.92,40),mat('#84c7d5',.24));water.rotation.x=-Math.PI/2;water.position.y=.38;f.add(water);const center=new THREE.Mesh(new THREE.CylinderGeometry(.18,.27,.5,16),mat('#e3e9df'));center.position.y=.6;f.add(center);ball(f,.25,'#c7e2d3',0,.89,0);f.position.set(10,0,8);g.add(f)
@@ -85,7 +85,7 @@ export function campusGround(g){
  block(g,.8,1.25,.38,'#bcc7ba',6,.72,12.4);block(g,.88,.11,.43,'#849f98',6,1.4,12.4);block(g,.58,.46,.045,'#365e61',6,.95,12.61);
  for(const x of[-1.5,-.2,1.1]){block(g,1,.13,1.3,'#92a88c',x,.16,13);block(g,.85,.04,1.15,'#a2bb96',x,.255,13);for(let k=0;k<3;k++)ball(g,.11,['#d9b488','#b8a3ae','#d6c5a0'][k],x-.2+k*.2,.39,13)}
  // Connected planting beds frame the pedestrian campus, with distinct quiet spaces.
- for(const [x,z,w,d]of[[-9,-10,4,7],[-9,11,4,6],[9,-10,4,5],[-4,-14,4,2],[3,14,4,2]]){block(g,w,.04,d,'#91ad94',x,.07,z,.09);for(let i=0;i<5;i++){const xx=x+(i%3-1)*w*.28,zz=z+(Math.floor(i/3)-.5)*d*.55;ball(g,.26,['#6b9273','#8aaa80','#a0b68b'][i%3],xx,.31,zz)}}
+ for(const [x,z,w,d]of[[-9,-10,4,7],[-9,11,4,6],[9,-10,4,5],[-4,-14,4,2],[3,14,4,2]]){block(g,w,.04,d,'#84ad83',x,.07,z,.09);for(let i=0;i<5;i++){const xx=x+(i%3-1)*w*.28,zz=z+(Math.floor(i/3)-.5)*d*.55;ball(g,.26,['#6b9273','#8aaa80','#a0b68b'][i%3],xx,.31,zz)}}
  for(const [x,z,s]of[[-10,-9,1.3],[-8,-11,1.2],[-10,12,1.2],[-8,10,1.15],[9,-12,1.25],[10,-8,1.3],[-3,-15,1.1],[2,15,1.15]])tree(g,x,z,s);
  for(const [x,z,ry]of[[-8.5,-8,.4],[-7,11,-.2],[8.5,-9,Math.PI/2]])bench(g,x,z,ry);
 
