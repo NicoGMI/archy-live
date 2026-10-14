@@ -83,7 +83,7 @@ function house(u,tasks){
   return g}
 
 export default function MapView(){
-  const ref=useRef(),{d}=useData(),[sel,setSel]=useState(null),[task,setTask]=useState(null),api=useRef({}),dataRef=useRef(null)
+  const ref=useRef(),{d}=useData(),[sel,setSel]=useState(null),[task,setTask]=useState(null),[quarter,setQuarter]=useState(null),api=useRef({}),dataRef=useRef(null)
   dataRef.current=d
   useEffect(()=>{api.current.build?.(d)},[d])
   useEffect(()=>{
@@ -256,7 +256,7 @@ export default function MapView(){
       r.shadowMap.needsUpdate=true
       if(selId)select(slotOf[selId]?selId:null,true)
     }
-    api.current={build,select,room:(tid)=>{if(!inter)return;const fr=inter.userData.frame;const g=inter.children.find(c=>c.userData.taskId===tid);if(fr&&g){fr.position.set(g.position.x,g.position.y+1.3,g.position.z);fr.visible=true}else if(fr)fr.visible=false}}
+    api.current={build,select,district:(key)=>{select(null);setQuarter(key);const q=QUARTERS[key];if(!q){camGoal={p:new THREE.Vector3(-4,mobile?80:48,mobile?80:62),t:new THREE.Vector3(-4,0,2)};fly();return}const [x,z]=q.c,rad=Math.max(7,...q.ids.map(id=>Math.hypot(PLAN[id][0]-x,PLAN[id][1]-z)+5)),dist=mobile?rad*3.7:rad*2.4;camGoal={p:new THREE.Vector3(x,dist*.85,z+dist),t:new THREE.Vector3(x,0,z)};fly()},room:(tid)=>{if(!inter)return;const fr=inter.userData.frame;const g=inter.children.find(c=>c.userData.taskId===tid);if(fr&&g){fr.position.set(g.position.x,g.position.y+1.3,g.position.z);fr.visible=true}else if(fr)fr.visible=false}}
     const ray=new THREE.Raycaster(),mp=new THREE.Vector2();let dn=null
     const cv=r.domElement
     const pd=e=>{dn={x:e.clientX,y:e.clientY,t:performance.now()}}
@@ -298,11 +298,14 @@ export default function MapView(){
   const cnt=s=>d?d.tasks.filter(t=>t.status===s).length:0
   const hidden=0
   const info=d?`${cnt('active')} au travail · ${cnt('waiting')+cnt('blocked')} en attente ${CONFIG.bossOf}${hidden?` · +${hidden} univers non affiché${hidden>1?'s':''}`:''}`:'Chargement…'
+  const navLabel={formation:'Formation',etudiant:'Écoles',ngmi:'NGMI',media:'Médias',perso:'Personnel',admin:'Archives'}
   return <div style={{position:'fixed',inset:0}}><div ref={ref} style={{position:'absolute',inset:0}}/>
     {d&&sel&&<Sheet d={d} id={sel} task={task} close={()=>api.current.select?.(null)}/>}
     <div style={{position:'absolute',top:10,left:10,right:10,display:'flex',justifyContent:'space-between',font:'600 13px system-ui',color:'#0f2a1a',pointerEvents:'none'}}>
       <Toggle view="map"/><span role="status" style={{background:'#ffffffcc',padding:'3px 9px',borderRadius:99}}>{info}</span></div>
-    {!sel&&<div style={{position:'absolute',bottom:10,left:10,font:'11px system-ui',color:'#0f2a1a',background:'#ffffffb0',padding:'3px 8px',borderRadius:8}}>dresseur qui marche = chantier actif · PNJ « … » = attend {CONFIG.boss} · ✕ = bloqué · ⏱ = programmé · coche = terminé · touche une maison</div>}</div>
+    {!sel&&<nav aria-label="Quartiers" style={{position:'absolute',top:56,left:10,right:10,display:'flex',gap:5,flexWrap:'wrap',maxWidth:600}}>{[['all','Village'],...Object.keys(QUARTERS).map(k=>[k,navLabel[k]])].map(([k,n])=><button key={k} onClick={()=>api.current.district?.(k==='all'?null:k)} aria-pressed={quarter===(k==='all'?null:k)} style={{border:quarter===k?'2px solid #fff':'1px solid #ffffffa0',borderRadius:12,padding:'7px 10px',background:k==='all'?'#fff8ed':BIOMES[k].roof,color:k==='all'?'#3d352a':'#fff8ee',boxShadow:'0 2px 6px #0003',font:'600 12px system-ui'}}>{n}</button>)}</nav>}
+    {!sel&&quarter&&<div style={{position:'absolute',bottom:14,left:10,right:10,display:'flex',gap:6,flexWrap:'wrap',maxWidth:600}}>{QUARTERS[quarter].ids.map(id=><button key={id} onClick={()=>api.current.select?.(id)} style={{background:'#fff8ed',color:'#312d26',border:0,borderRadius:10,padding:'8px 11px',font:'600 12px system-ui',boxShadow:'0 2px 6px #0003'}}>{d?.universes.find(u=>u.id===id)?.name||id}</button>)}</div>}
+    {!sel&&!quarter&&<div style={{position:'absolute',bottom:10,left:10,font:'11px system-ui',color:'#0f2a1a',background:'#ffffffb0',padding:'3px 8px',borderRadius:8}}>dresseur qui marche = chantier actif · PNJ « … » = attend {CONFIG.boss} · ✕ = bloqué · ⏱ = programmé · coche = terminé · touche une maison</div>}</div>
 }
 
 function Sheet({d,id,task,close}){

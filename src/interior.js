@@ -47,7 +47,7 @@ function room(t,u,tpl,idx){
   if(lampOn){const halo=new THREE.Mesh(new THREE.CircleGeometry(.9,24),new THREE.MeshBasicMaterial({color:th.lamp,transparent:true,opacity:.14,depthWrite:false}));halo.rotation.x=-Math.PI/2;halo.position.set(0,.09,-.1);g.add(halo)}
   // titre + puce statut + note
   const title=label((t.title.length>20?t.title.slice(0,19)+'…':t.title),SC[status]||'#888',44);title.scale.multiplyScalar(.5);title.position.set(0,RH-.3,-RD/2+.2);g.add(title)
-  const chip=label(LB[status]||status,SC[status]||'#888',34,SC[status]||'#999','#111');chip.scale.multiplyScalar(.45);chip.position.set(0,RH-.62,-RD/2+.2);g.add(chip)
+  const chip=label(t.empty?'Disponible':LB[status]||status,SC[status]||'#888',34,SC[status]||'#999','#111');chip.scale.multiplyScalar(.45);chip.position.set(0,RH-.62,-RD/2+.2);g.add(chip)
   if(t.note){const note=plane(1.1,.68,(x,w,h)=>{x.fillStyle='#fff6bf';x.fillRect(0,0,w,h);x.fillStyle='#e0b94a';x.fillRect(0,0,w,14);x.fillStyle='#3a2a0a';x.font='700 21px system-ui';wrap(x,t.note,w-20,5).forEach((l,i)=>x.fillText(l,10,40+i*26))},256,160)
     note.position.set(status==='scheduled'?-.9:.85,1.3,-RD/2+.07);note.rotation.z=.04;g.add(note)}
   // meubles par statut
@@ -59,7 +59,8 @@ function room(t,u,tpl,idx){
   const plant=(x,z)=>{box(.24,.26,.24,'#a0522d',x,.16,z);const l=new THREE.Mesh(new THREE.IcosahedronGeometry(.28,0),M('#4e9b53'));l.position.set(x,.5,z);g.add(l);const l2=new THREE.Mesh(new THREE.IcosahedronGeometry(.18,0),M('#6bbf6e'));l2.position.set(x+.1,.74,z);g.add(l2)}
   const person=(x,z,ry,shirt,bubbleCh,bubbleCol,s=.95)=>{const w=trainer(shirt,'#ef4444');w.scale.setScalar(s);w.position.set(x,.06,z);w.rotation.y=ry;w.userData.kind=status;w.userData.ry=ry;tpl.walkers.push(w);const b=bubble(bubbleCh,bubbleCol);b.position.set(0,1.75,0);b.scale.set(.5,.5,1);w.add(b);g.add(w);return w}
   const crate=(x,y,z,s=.5)=>box(s,s,s,'#b48a5a',x,y+s/2,z,{ry:Math.random()*.4})
-  if(status==='active'){desk(-.15,-.55,'#7dffb0');chair(-.15,-.1);shelf(RW/2-.12);plant(-RW/2+.28,.9);person(-.15,-.82,0,u.color,'!','#16a34a')}
+  if(t.empty){desk(-.15,-.55,'#d2dce0');chair(-.15,-.1);plant(RW/2-.3,.9);shelf(-RW/2+.12)}
+  else if(status==='active'){desk(-.15,-.55,'#7dffb0');chair(-.15,-.1);shelf(RW/2-.12);plant(-RW/2+.28,.9);person(-.15,-.82,0,u.color,'!','#16a34a')}
   else if(status==='blocked'){desk(-.2,-.6,'#ff5a4a');chair(-.2,-.15);person(.55,.2,Math.PI*.9,'#fca5a5','✕','#dc2626')
     const lk=new THREE.Group();const body=new THREE.Mesh(new THREE.BoxGeometry(.3,.26,.1),M('#d4a017'));lk.add(body);const sh=new THREE.Mesh(new THREE.TorusGeometry(.1,.025,6,12,Math.PI),M('#9aa0a6'));sh.position.y=.15;lk.add(sh);lk.position.set(RW/2-.4,1.55,-RD/2+.12);g.add(lk)
     crate(-RW/2+.35,.06,.8);crate(-RW/2+.35,.56,.8,.4)}
@@ -83,7 +84,7 @@ function room(t,u,tpl,idx){
 export function buildInterior(u,tasks){
   const root=new THREE.Group(),tpl={walkers:[]}
   const groups=groupedRooms(u,tasks.filter(t=>t.id!=='_vide'))
-  const sorted=groups.map(q=>{const list=[...q.tasks].sort((a,b)=>ORD[a.status]-ORD[b.status]);const t=list[0];return {id:'room:'+q.id,title:q.title,status:t?.status||'queued',note:list.length?list.length+' tâche'+(list.length>1?'s':'')+' · '+list.filter(t=>t.status!=='done').length+' non terminée'+(list.filter(t=>t.status!=='done').length>1?'s':''):'Aucune tâche en cours',scheduledAt:t?.scheduledAt,roomId:q.id}})
+  const sorted=groups.map(q=>{const list=[...q.tasks].sort((a,b)=>ORD[a.status]-ORD[b.status]);const t=list[0];return {id:'room:'+q.id,title:q.title,status:t?.status||'queued',note:list.length?list.length+' tâche'+(list.length>1?'s':'')+' · '+list.filter(t=>t.status!=='done').length+' non terminée'+(list.filter(t=>t.status!=='done').length>1?'s':''):'Aucune tâche en cours',scheduledAt:t?.scheduledAt,roomId:q.id,empty:!list.length}})
   const n=sorted.length,cols=n<=3?n:n===4?2:3,rows=Math.ceil(n/cols),W=cols*RW,Hh=rows*(RH+SLAB)
   // fondation + enseigne
   const base=new THREE.Mesh(new THREE.BoxGeometry(W+.5,.3,RD+.6),texMat(tx('stone',[4,1])));base.position.set(0,-.15,.1);root.add(base)
