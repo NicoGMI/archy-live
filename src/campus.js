@@ -89,6 +89,13 @@ export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,fl
  g.updateMatrixWorld(true);const shells=[];g.traverse(o=>{if(!o.isMesh||!o.material?.isMeshLambertMaterial)return;o.geometry.computeBoundingBox();const b=o.geometry.boundingBox,size=new THREE.Vector3();b.getSize(size);if(size.x<.3||size.y<.08||size.z<.3)return;const geo=new THREE.BoxGeometry(size.x,size.y,size.z),center=new THREE.Vector3();b.getCenter(center);geo.translate(center.x,center.y,center.z);geo.applyMatrix4(o.matrixWorld);shells.push(geo)});g.userData.depthGeometry=mergeGeometries(shells);shells.forEach(geo=>geo.dispose());g.userData.uni=u.id;return g}
 export function campusGround(g){
  block(g,26,.55,34,'#748f8c',0,-.3,0,.22);block(g,25.8,.10,33.8,'#b6d39b',0,.0,0,.2)
+ // Soft meadow colour and shallow planted rises break the flat model-board surface.
+ const meadowGeo=new THREE.PlaneGeometry(25.35,33.35,40,52);meadowGeo.rotateX(-Math.PI/2);
+ const meadowPos=meadowGeo.attributes.position,meadowColors=new Float32Array(meadowPos.count*3);
+ const low=new THREE.Color('#b3c995'),high=new THREE.Color('#cad6a8');
+ for(let i=0;i<meadowPos.count;i++){const x=meadowPos.getX(i),z=meadowPos.getZ(i),blend=.46+.19*Math.sin(x*.31+z*.16)+.15*Math.cos(z*.35-x*.1),c=low.clone().lerp(high,blend);meadowColors.set([c.r,c.g,c.b],i*3)}
+ meadowGeo.setAttribute('color',new THREE.BufferAttribute(meadowColors,3));const meadowMat=mat('#ffffff').clone();meadowMat.vertexColors=true;const meadow=new THREE.Mesh(meadowGeo,meadowMat);meadow.position.y=.056;meadow.receiveShadow=true;g.add(meadow);
+ for(const [x,z,w,d]of[[-10,11,2.1,2.8],[-10,-11,2.1,2.4],[10,-11,1.7,2.8],[-3,-15,1.8,1.2],[3,15,1.9,1.2]]){const rise=new THREE.Mesh(new THREE.SphereGeometry(1,20,12),mat('#b4c99b'));rise.scale.set(w,.32,d);rise.position.set(x,-.11,z);rise.receiveShadow=true;g.add(rise)}
  // Layout and roads are the original V21 geometry. A pocket garden fills the vacant west side.
  block(g,4,.12,6,'#8faba0',10,.09,8);block(g,3.7,.04,5.7,'#b3c9ad',10,.17,8)
  const f=new THREE.Group();const basin=new THREE.Mesh(new THREE.CylinderGeometry(1.05,1.13,.25,40),mat('#e9eae1'));basin.position.y=.25;basin.receiveShadow=true;f.add(basin);const water=new THREE.Mesh(new THREE.CircleGeometry(.92,40),mat('#84c7d5',.24));water.rotation.x=-Math.PI/2;water.position.y=.38;f.add(water);const center=new THREE.Mesh(new THREE.CylinderGeometry(.18,.27,.5,16),mat('#e3e9df'));center.position.y=.6;f.add(center);ball(f,.25,'#c7e2d3',0,.89,0);f.position.set(10,0,8);g.add(f)
