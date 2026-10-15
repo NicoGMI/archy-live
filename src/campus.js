@@ -6,12 +6,12 @@ const cache=new Map()
 export const mat=(color,roughness=.72)=>{const k=color+roughness;if(!cache.has(k))cache.set(k,new THREE.MeshLambertMaterial({color}));return cache.get(k)}
 function bevelBox(w,h,d,r){w-=r*2;d-=r*2;const shape=new THREE.Shape();shape.moveTo(-w/2+r,-d/2);shape.lineTo(w/2-r,-d/2);shape.quadraticCurveTo(w/2,-d/2,w/2,-d/2+r);shape.lineTo(w/2,d/2-r);shape.quadraticCurveTo(w/2,d/2,w/2-r,d/2);shape.lineTo(-w/2+r,d/2);shape.quadraticCurveTo(-w/2,d/2,-w/2,d/2-r);shape.lineTo(-w/2,-d/2+r);shape.quadraticCurveTo(-w/2,-d/2,-w/2+r,-d/2);const geo=new THREE.ExtrudeGeometry(shape,{depth:Math.max(.005,h-r*2),bevelEnabled:true,bevelThickness:r,bevelSize:r,bevelSegments:2,steps:1,curveSegments:2});geo.rotateX(-Math.PI/2);geo.translate(0,-h/2+r,0);return geo}
 export function block(g,w,h,d,c,x,y,z,r=.045){const o=new THREE.Mesh((w*h*d>5&&Math.min(w,h,d)>.18?bevelBox(w,h,d,Math.min(r,w/4,h/4,d/4)):new THREE.BoxGeometry(w,h,d)),mat(c));o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;g.add(o);return o}
-const ball=(g,r,c,x,y,z)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(r,12,8),mat(c));o.position.set(x,y,z);o.castShadow=true;g.add(o);return o}
+const ball=(g,r,c,x,y,z,segments=12,rings=8)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(r,segments,rings),mat(c));o.position.set(x,y,z);o.castShadow=true;g.add(o);return o}
 export function tree(g,x,z,s=1){const t=new THREE.Group(),v=Math.abs(Math.round(x*13+z*7))%3;const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.075,.13,1.15,7),mat('#b89a70'));trunk.position.y=.57;trunk.castShadow=true;t.add(trunk);
  const palettes=[['#3f8b56','#75b96c','#abd57e'],['#468e58','#8ac477','#b8db88'],['#408956','#72b66a','#b0d785']],c=(x<-7&&z>7)?[['#6b9856','#a5bb65','#cbd589'],['#618d4f','#97b45e','#c4d784'],['#739550','#b3bd6a','#d4d18c']][v]:palettes[v];
  // One sculpted crown with a baked vertical colour wash, not intersecting colour balls.
- const geo=new THREE.SphereGeometry(1,20,16),pos=geo.attributes.position,colors=new Float32Array(pos.count*3),dark=new THREE.Color(c[0]),light=new THREE.Color(c[1]);
- for(let i=0;i<pos.count;i++){const y=pos.getY(i),x=pos.getX(i),z=pos.getZ(i),wave=1+.065*Math.sin(x*7+z*4)*Math.sin(y*6);pos.setXYZ(i,x*wave,y,z*wave);const color=dark.clone().lerp(light,Math.max(0,Math.min(1,(y+.8)*.38+x*.10+z*.06)));colors.set([color.r,color.g,color.b],i*3)}geo.setAttribute('color',new THREE.BufferAttribute(colors,3));geo.computeVertexNormals();const crownMat=mat('#ffffff').clone();crownMat.vertexColors=true;const crown=new THREE.Mesh(geo,crownMat);crown.position.y=1.6;crown.scale.set(v===1?.72:.86,v===1?1.02:.82,v===2?.74:.80);crown.castShadow=true;t.add(crown);
+ const geo=new THREE.SphereGeometry(1,28,20),pos=geo.attributes.position,colors=new Float32Array(pos.count*3),dark=new THREE.Color(c[0]),light=new THREE.Color(c[1]);
+ for(let i=0;i<pos.count;i++){const y=pos.getY(i),x=pos.getX(i),z=pos.getZ(i),angle=Math.atan2(z,x),belt=Math.pow(Math.max(0,1-y*y),.5),wave=1+(v===1?.035:.13)*Math.cos(angle*5+v*.9)*belt+.035*Math.sin(y*8+angle*3);pos.setXYZ(i,x*wave,y+(v===1?0:.065*Math.cos(angle*5+v*.9)*belt),z*wave);const color=dark.clone().lerp(light,Math.max(0,Math.min(1,(y+.8)*.48+x*.13+z*.09)));colors.set([color.r,color.g,color.b],i*3)}geo.setAttribute('color',new THREE.BufferAttribute(colors,3));geo.computeVertexNormals();const crownMat=mat('#ffffff').clone();crownMat.vertexColors=true;const crown=new THREE.Mesh(geo,crownMat);crown.position.y=1.6;crown.scale.set(v===1?.72:.86,v===1?1.02:.82,v===2?.74:.80);crown.castShadow=true;t.add(crown);
  const branch=new THREE.Mesh(new THREE.CylinderGeometry(.035,.045,.5,5),mat('#b89a70'));branch.position.set(.1,.97,0);branch.rotation.z=-.55;t.add(branch);t.position.set(x,.06,z);t.scale.setScalar(s);g.add(t)}
 function softBlock(g,w,h,d,c,x,y,z,r=.07){const o=new THREE.Mesh(bevelBox(w,h,d,Math.min(r,h*.28)),mat(c));o.position.set(x,y,z);o.castShadow=true;g.add(o);return o}
 function garden(g,x,z,w,d){const ring=new THREE.Mesh(new THREE.CylinderGeometry(1,1,.07,24),mat('#b7c4a3'));ring.scale.set(w/2,1,d/2);ring.position.set(x,.085,z);g.add(ring);const soil=new THREE.Mesh(new THREE.CircleGeometry(1,24),mat('#86ac80'));soil.rotation.x=-Math.PI/2;soil.scale.set((w-.13)/2,(d-.13)/2,1);soil.position.set(x,.125,z);g.add(soil)}
@@ -232,6 +232,15 @@ export function campusGround(g){
  const alongX=w>d;for(const sign of[-1,1]){const xx=x+(alongX?sign*w/2:0),zz=z+(alongX?0:sign*d/2);softBlock(wall,.46,.66,.46,'#c8c8a5',xx,.40,zz,.05);softBlock(wall,.55,.10,.55,'#e6dbb8',xx,.76,zz,.035);const finial=ball(wall,.14,'#8fa378',xx,.89,zz);finial.scale.y=.85;}
  }
  g.add(wall);
+ // Broad-leaf planting and pale daisies make the quiet garden botanical rather than a field of balls.
+ const flowers=new THREE.Group();
+ for(const [x,z]of[[-10.3,8.5],[-8.4,12.7],[-10.6,-7.3],[6.7,-12.8],[10.5,-6.1],[4.7,14.7]]){
+  for(let k=0;k<6;k++){const a=k*2.399,r=.22+Math.sqrt(k)*.18,xx=x+Math.cos(a)*r,zz=z+Math.sin(a)*r,h=.26+(k%3)*.07;
+   const stem=block(flowers,.022,h,.022,'#69915a',xx,.14+h/2,zz);for(const side of[-1,1]){const leaf=ball(flowers,.105,'#8eae62',xx+side*.07,.20+h*.35,zz,6,4);leaf.scale.set(1.3,.28,.65);leaf.rotation.z=side*.48;}
+   for(let j=0;j<5;j++){const aa=j*Math.PI*2/5,petal=ball(flowers,.065,['#f3e5b4','#ecc9a1','#f2db9a'][k%3],xx+Math.cos(aa)*.074,.15+h,zz+Math.sin(aa)*.074,6,4);petal.scale.set(1,.45,1);}ball(flowers,.045,'#cba357',xx,.17+h,zz,6,4);
+  }
+ }
+ g.add(flowers);
  // Granite paving has subtle joints instead of noisy procedural textures.
  for(let k=0;k<6;k++)block(g,.014,.009,1.7,'#7e9591',7.5+k*.3,.195,10);
  return {water}
