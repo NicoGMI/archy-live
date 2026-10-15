@@ -1,6 +1,6 @@
 // Réglages personnalisables (textes, fuseau, rythme de rafraîchissement).
 export const CONFIG = {
-  title: 'Archy',          // titre du dashboard et plaque du bureau central
+  title: 'Artie City',          // titre du dashboard et plaque du bureau central
   timeZone: 'Europe/Paris',
   locale: 'fr-FR',
   boss: 'Nico',         // « Attend le boss » (ex. un prénom)

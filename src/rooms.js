@@ -1,4 +1,5 @@
 export const ROOM_DEFS={
+ conferences:[['bni','BNI'],['sainte-helene','Sainte-Hélène']],
  phil:[['publication','Publication'],['commentaires','Commentaires'],['analytics','Analytics']],
  cts:[['strategie','Stratégie marketing'],['app','Application']],
  isme:[['prep-cours','Préparation cours'],['archives','Archives mails']],

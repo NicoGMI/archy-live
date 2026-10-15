@@ -126,7 +126,7 @@ export default function MapView(){
     const bx=(w,h,d,c,x,y,z,sh=true)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),typeof c==='string'?M(c):c);m.position.set(x,y,z);m.castShadow=sh;dsk.add(m);return m}
     bx(3.2,.95,1.3,'#7a4a2a',0,.48,.2);bx(3.5,.12,1.55,'#5a3520',0,1.0,.2)
     bx(1.0,.5,.02,'#3a2312',0,.55,.862) // plaque fond
-    const pc=document.createElement('canvas');pc.width=512;pc.height=128;const px2=pc.getContext('2d');px2.fillStyle='#e2b659';px2.fillRect(0,0,512,128);px2.strokeStyle='#8a6a1e';px2.lineWidth=8;px2.strokeRect(6,6,500,116);px2.fillStyle='#3a2a0a';px2.font='800 86px Georgia,serif';px2.textAlign='center';px2.textBaseline='middle';px2.fillText(CONFIG.title.toUpperCase(),256,70)
+    const pc=document.createElement('canvas');pc.width=512;pc.height=128;const px2=pc.getContext('2d');px2.fillStyle='#e2b659';px2.fillRect(0,0,512,128);px2.strokeStyle='#8a6a1e';px2.lineWidth=8;px2.strokeRect(6,6,500,116);px2.fillStyle='#3a2a0a';px2.font='800 66px Georgia,serif';px2.textAlign='center';px2.textBaseline='middle';px2.fillText(CONFIG.title.toUpperCase(),256,70)
     const pt=new THREE.CanvasTexture(pc);pt.colorSpace=THREE.SRGBColorSpace
     const plq=new THREE.Mesh(new THREE.PlaneGeometry(1.5,.38),new THREE.MeshBasicMaterial({map:pt}));plq.position.set(0,.62,.865);dsk.add(plq)
     // fauteuil
@@ -303,7 +303,7 @@ export default function MapView(){
   return <div style={{position:'fixed',inset:0}}><div ref={ref} style={{position:'absolute',inset:0}}/>
     {d&&sel&&<Sheet d={d} id={sel} task={task} close={()=>api.current.select?.(null)}/>}
     <div style={{position:'absolute',top:10,left:10,right:10,display:'flex',justifyContent:'space-between',font:'600 13px system-ui',color:'#0f2a1a',pointerEvents:'none'}}>
-      <Toggle view="map"/><span role="status" style={{background:'#ffffffcc',padding:'3px 9px',borderRadius:99}}>{info}</span></div>
+      <Toggle view="map"/><span role="status" style={{background:'#ffffffcc',padding:'3px 9px',borderRadius:99}}><b>{CONFIG.title}</b> · {info}</span></div>
     {!sel&&<nav aria-label="Quartiers" style={{position:'absolute',top:56,left:10,right:10,display:'flex',gap:5,flexWrap:'wrap',maxWidth:600}}>{[['all','Village'],...Object.keys(QUARTERS).map(k=>[k,navLabel[k]])].map(([k,n])=><button key={k} onClick={()=>api.current.district?.(k==='all'?null:k)} aria-pressed={quarter===(k==='all'?null:k)} style={{border:quarter===k?'2px solid #fff':'1px solid #ffffffa0',borderRadius:12,padding:'7px 10px',background:k==='all'?'#fff8ed':BIOMES[k].roof,color:k==='all'?'#3d352a':'#fff8ee',boxShadow:'0 2px 6px #0003',font:'600 12px system-ui'}}>{n}</button>)}</nav>}
     {!sel&&quarter&&<div style={{position:'absolute',bottom:14,left:10,right:10,display:'flex',gap:6,flexWrap:'wrap',maxWidth:600}}>{QUARTERS[quarter].ids.map(id=><button key={id} onClick={()=>api.current.select?.(id)} style={{background:'#fff8ed',color:'#312d26',border:0,borderRadius:10,padding:'8px 11px',font:'600 12px system-ui',boxShadow:'0 2px 6px #0003'}}>{d?.universes.find(u=>u.id===id)?.name||id}</button>)}</div>}
     {!sel&&!quarter&&<div style={{position:'absolute',bottom:10,left:10,font:'11px system-ui',color:'#0f2a1a',background:'#ffffffb0',padding:'3px 8px',borderRadius:8}}>dresseur qui marche = chantier actif · PNJ « … » = attend {CONFIG.boss} · ✕ = bloqué · ⏱ = programmé · coche = terminé · touche une maison</div>}</div>

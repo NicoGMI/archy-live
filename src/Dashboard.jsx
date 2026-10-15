@@ -11,7 +11,7 @@ function Task({t,d,now,u,open,toggle}){
     <div className="tmain">
       <div className="ttl"><span className="uni" style={{color:u?.color}}>{u?.name}</span>{t.status==='active'&&<i className="pulse"/>}<b>{t.title}</b></div>
       <div className="meta"><span className="chip" style={{'--c':SC[t.status]}}>{LB[t.status]}</span>{when&&<span>{when}</span>}</div>
-      {t.note&&<div className="note">{t.note}</div>}
+      {t.note&&<div className="note">{t.note}</div>}{t.url&&<a className="task-link" href={t.url} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()}>Ouvrir le plan Notion ↗</a>}
       <ActionBar t={t}/>{open&&<div className="hist">{lg.length?lg.map((l,i)=><div key={i}><time>{fmt(l.at)}</time>{l.text}</div>):<div className="muted">Pas d'historique enregistré</div>}</div>}
     </div></div>}
 export default function Dashboard(){
@@ -40,7 +40,7 @@ export default function Dashboard(){
       return <button key={u.id} className={'ucard '+(uf===u.id?'sel':'')} style={{'--c':u.color}} onClick={()=>setUf(uf===u.id?null:u.id)}>
         <div className="un"><i style={{background:u.color}}/>{u.name}{n('active')>0&&<em className="pulse"/>}</div>
         <div className="seg">{['active','waiting','blocked','scheduled','queued','done'].map(s=>n(s)?<span key={s} style={{flex:n(s),background:SC[s]}}/>:null)}</div>
-        <div className="uc">{n('active')} en cours · {n('waiting')+n('blocked')} attente · {n('done')} finis</div></button>})}</div>
+        <div className="uc">{n('active')} en cours · {n('waiting')+n('blocked')} attente · {n('done')} finis</div>{u.id==='conferences'&&<div className="project-branches">BNI · Sainte-Hélène</div>}</button>})}</div>
     {uf&&<div className="filter">Filtre : <b>{U[uf].name}</b> <button onClick={()=>setUf(null)}>Tout afficher</button></div>}
     {(!uf||uf==='phil')&&<YoutubeStats stats={d.stats?.youtube}/>}
     {(d.alerts||[]).filter(a=>!uf||a.universe===uf).map(a=><div key={a.id} className="warn">{a.icon||'✉'} {U[a.universe]?.name} · {a.text} · {fmt(a.at)}</div>)}
