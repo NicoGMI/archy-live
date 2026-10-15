@@ -141,6 +141,13 @@ export function campusGround(g){
  // A garden-only limestone walk connects the reading grove without changing V21 streets.
  const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(-11,.14,12),new THREE.Vector3(-8.5,.14,8),new THREE.Vector3(-10,.14,4),new THREE.Vector3(-9.5,.14,0),new THREE.Vector3(-10,.14,-5),new THREE.Vector3(-8.5,.14,-10),new THREE.Vector3(-9,.14,-14)]);
  const pts=curve.getPoints(72),vertices=[],indices=[];pts.forEach((p,i)=>{const tangent=curve.getTangent(i/72),side=new THREE.Vector3(-tangent.z,0,tangent.x).multiplyScalar(.4);vertices.push(p.x+side.x,p.y,p.z+side.z,p.x-side.x,p.y,p.z-side.z);if(i<72){const k=i*2;indices.push(k,k+2,k+1,k+1,k+2,k+3)}});const walkGeo=new THREE.BufferGeometry();walkGeo.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));walkGeo.setAttribute('uv',new THREE.Float32BufferAttribute(new Float32Array(vertices.length/3*2),2));walkGeo.setIndex(indices);walkGeo.computeVertexNormals();g.add(new THREE.Mesh(walkGeo,mat('#c9cfb8')));
+ // A timber reading deck and low curved seats make the garden spaces legible at village scale.
+ softBlock(g,3.1,.13,3.2,'#c5b699',-9.75,.14,2,.08);
+ for(let k=0;k<13;k++)block(g,3.0,.012,.018,'#a89e86',-9.75,.214,.56+k*.24);
+ for(const [cx,cz,start]of[[10,8,.12],[-9,11,.28]]){const geo=new THREE.TorusGeometry(1.42,.16,6,24,Math.PI*.62),seat=new THREE.Mesh(geo,mat('#d6d8c2'));seat.rotation.x=Math.PI/2;seat.rotation.z=start;seat.position.set(cx,.37,cz);seat.castShadow=true;g.add(seat);
+ for(const a of[start+.12,start+1.8]){const x=cx+Math.cos(a)*1.42,z=cz-Math.sin(a)*1.42;block(g,.18,.32,.18,'#8ca296',x,.18,z)} }
+ // A shallow ring catches the fountain light without simulating a work signal.
+ const ripple=new THREE.Mesh(new THREE.TorusGeometry(.65,.014,4,32),mat('#b7d6d0'));ripple.rotation.x=Math.PI/2;ripple.position.set(10,.385,8);g.add(ripple);
  // Slender cypresses and clipped meadow borders frame the entrances as a garden campus.
  for(const [x,z]of[[12,-3.4],[12,4.0],[-5.8,-13.8],[-5.8,13.8]]){
  const cypress=new THREE.Group();const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.055,.09,1.1,7),mat('#b9ad91'));trunk.position.y=.55;cypress.add(trunk);
