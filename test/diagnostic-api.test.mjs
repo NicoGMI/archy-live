@@ -1,0 +1,3 @@
+import test from'node:test';import assert from'node:assert/strict';import{onRequestGet,onRequestPost}from'../functions/api/diagnostics.js';
+test('snapshot writer rejects missing and wrong secrets',async()=>{for(const token of['','wrong']){const r=await onRequestPost({request:new Request('https://example.test/api/diagnostics',{method:'POST',headers:{authorization:'Bearer '+token},body:'{}'}),env:{ARCHY_WRITE_TOKEN:'secret'}});assert.equal(r.status,403)}})
+test('snapshot GET is not cached or indexable',async()=>{const r=await onRequestGet({env:{ARCHY:{get:async()=>JSON.stringify({records:[]})}}});assert.equal(r.headers.get('cache-control'),'no-store');assert.equal(r.headers.get('x-robots-tag'),'noindex');assert.equal((await r.json()).records.length,0)})

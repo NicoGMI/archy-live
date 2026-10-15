@@ -1,5 +1,6 @@
 import React,{useMemo,useState} from 'react'
 import {useData,Toggle,ActionBar,SC,LB,fmt,hm,dayKey,ago} from './shared.jsx'
+import './diagnostics.css'
 import YoutubeStats from './YoutubeStats.jsx'
 import {CONFIG} from './config.js'
 const Sec=({title,n,children,accent})=>n===0?null:<section className="sec"><h3 style={accent?{color:accent}:null}>{title}<span>{n}</span></h3>{children}</section>
@@ -34,6 +35,7 @@ export default function Dashboard(){
     <header><div><h1>{CONFIG.title}</h1><div className="sub"><span className={'live '+(err?'off':'')}><i className={err?'':'pulse'}/>{err?'connexion perdue':'live'}</span>
       <span>mis à jour {ago(d.updatedAt,now)}</span></div></div><Toggle view="dash"/></header>
     {(err||stale)&&<div className="warn">{err?`Impossible de rafraîchir (dernières données reçues il y a ${okAt?ago(new Date(okAt).toISOString(),now):'?'}).`:`Aucune mise à jour depuis plus de 3 h : les statuts peuvent être périmés.`}</div>}
+    <a className="diag-entry" href="#diagnostics"><div><b>Diagnostic IA · MEGA.school</b><span>Emails transmis, rapports et réponses détaillées</span></div><i>↗</i></a>
     <div className="kpis">
       {[['En cours',k('active'),SC.active],['Attendent '+CONFIG.boss,k('waiting')+k('blocked'),SC.waiting],['Programmés',k('scheduled'),SC.scheduled],["Terminés aujourd'hui",doneToday,'#a3a3a3']].map(([l,n,c])=><div key={l} className="kpi"><b style={{color:c}}>{n}</b><span>{l}</span></div>)}</div>
     <div className="unis">{d.universes.map(u=>{const ts=d.tasks.filter(t=>t.universe===u.id);if(!ts.length)return null;const n=s=>ts.filter(t=>t.status===s).length

@@ -9,7 +9,7 @@ const page = (msg = '') => new Response(`<!doctype html><html lang="fr"><head><m
   { status: msg ? 401 : 200, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-robots-tag': 'noindex' } })
 export async function onRequest({ request, env, next }) {
   // L'écriture des données passe par le jeton Bearer vérifié dans functions/api/status.js (pas de cookie pour la CLI).
-  if (request.method === 'POST' && new URL(request.url).pathname === '/api/status') return next()
+  if (request.method === 'POST' && ['/api/status','/api/diagnostics'].includes(new URL(request.url).pathname)) return next()
   // /api/actions avec en-tête Authorization : le jeton est vérifié dans la fonction (CLI d'Archy).
   if (['/api/actions','/api/status'].includes(new URL(request.url).pathname) && request.headers.get('authorization')) return next()
   const pw = env.ARCHY_PASSWORD

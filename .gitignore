@@ -12,3 +12,5 @@ public/data/archy-status.json
 
 backups/
 verify*.mjs
+
+public/data/diagnostics.json
