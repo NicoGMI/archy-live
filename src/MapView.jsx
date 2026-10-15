@@ -1,3 +1,4 @@
+import {createWalk} from './walk.js'
 import {PLAN,QUARTERS} from './layout.js'
 import {turnToward} from './motion.js'
 import React,{useEffect,useRef,useState} from 'react'
@@ -81,7 +82,7 @@ function house(u,tasks){
   return g}
 
 export default function MapView(){
-  const ref=useRef(),{d}=useData(),[sel,setSel]=useState(null),[task,setTask]=useState(null),[quarter,setQuarter]=useState(null),api=useRef({}),dataRef=useRef(null)
+  const ref=useRef(),{d}=useData(),[sel,setSel]=useState(null),[task,setTask]=useState(null),[quarter,setQuarter]=useState(null),[walking,setWalking]=useState(false),[near,setNear]=useState(null),stick=useRef(),api=useRef({}),dataRef=useRef(null)
   dataRef.current=d
   useEffect(()=>{api.current.build?.(d)},[d])
   useEffect(()=>{
@@ -258,14 +259,15 @@ export default function MapView(){
     const ray=new THREE.Raycaster(),mp=new THREE.Vector2();let dn=null
     const cv=r.domElement
     const pd=e=>{dn={x:e.clientX,y:e.clientY,t:performance.now()}}
-    const pu=e=>{if(!dn)return;const mv=Math.hypot(e.clientX-dn.x,e.clientY-dn.y),dt=performance.now()-dn.t;dn=null;if(mv>8||dt>500)return
+    const pu=e=>{if(walk.active)return;if(!dn)return;const mv=Math.hypot(e.clientX-dn.x,e.clientY-dn.y),dt=performance.now()-dn.t;dn=null;if(mv>8||dt>500)return
       const b=cv.getBoundingClientRect();mp.set(((e.clientX-b.left)/b.width)*2-1,-((e.clientY-b.top)/b.height)*2+1);ray.setFromCamera(mp,cam)
       const hit=ray.intersectObjects(dyn.children,true).find(h=>{let o=h.object;while(o){if(o.userData&&o.userData.uni)return true;o=o.parent}return false})
       if(!hit){select(null);return};let o=hit.object;while(o&&!(o.userData&&o.userData.uni))o=o.parent;const uid=o.userData.uni;let q=hit.object,tid=null;while(q){if(q.userData&&q.userData.taskId){tid=q.userData.taskId;break}q=q.parent}
       if(uid===selId&&tid){setTask(tid);return};select(uid)}
     cv.addEventListener('pointerdown',pd);cv.addEventListener('pointerup',pu)
-    const onKey=e=>{if(e.key==='Escape')select(null)};addEventListener('keydown',onKey)
-    if(new URLSearchParams(location.search).has('debug')){window.__cam=cam;window.__r=r;window.__ctl=ctl;window.__pick=select;window.__actors=()=>actors}
+    const walk=createWalk({scene,cam,ctl,hill,places:()=>Object.entries(slotOf).map(([id,p])=>({...p,id,name:dataRef.current?.universes.find(u=>u.id===id)?.name||id})),onNear:setNear});api.current.walk=()=>{select(null);flight=0;camGoal=null;walk.start();setWalking(true)};api.current.stopWalk=()=>{walk.stop();setWalking(false)};api.current.axis=(x,y)=>walk.setAxis(x,y);api.current.visit=()=>{const id=walk.near?.id;if(id){walk.stop();setWalking(false);select(id)}};
+const onKey=e=>{if(e.key==='Escape'){if(walk.active){walk.stop();setWalking(false)}else select(null)}if(e.key==='Enter'&&walk.active)api.current.visit?.()};addEventListener('keydown',onKey)
+    if(new URLSearchParams(location.search).has('debug')){window.__cam=cam;window.__r=r;window.__ctl=ctl;window.__pick=select;window.__actors=()=>actors;window.__walk=walk}
     build(dataRef.current);r.shadowMap.needsUpdate=true
     let stop=false;const clock=new THREE.Clock()
     const loop=()=>{if(stop)return;requestAnimationFrame(loop);const t=clock.getElapsedTime()
@@ -288,11 +290,11 @@ export default function MapView(){
       pondTex.offset.x=t*.01;pondTex.offset.y=Math.sin(t*.3)*.02
       {const a=ff.geometry.attributes.position;for(let i=0;i<a.count;i++){a.setXYZ(i,ffb[i*3]+Math.sin(t*.5+i)*1.2,ffb[i*3+1]+Math.sin(t*.8+i*2)*.4,ffb[i*3+2]+Math.cos(t*.4+i)*1.2)}a.needsUpdate=true;ff.material.opacity=.55+.35*Math.sin(t*2)}
       clouds.forEach((c,i)=>{c.position.x+=.01+i*.001;if(c.position.x>80)c.position.x=-80})
-      ctl.update();r.render(scene,cam)}
+      if(!walk.active)ctl.update();walk.tick(dt,t);r.render(scene,cam)}
     loop()
     const rs=()=>{r.setSize(W(),H());cam.aspect=W()/H();if(inter)vo();cam.updateProjectionMatrix()};addEventListener('resize',rs)
-    return()=>{stop=true;api.current={};removeEventListener('resize',rs);removeEventListener('keydown',onKey);cv.removeEventListener('pointerdown',pd);cv.removeEventListener('pointerup',pu)
-      delete window.__cam;delete window.__ctl;delete window.__pick
+    return()=>{stop=true;walk.dispose();api.current={};removeEventListener('resize',rs);removeEventListener('keydown',onKey);cv.removeEventListener('pointerdown',pd);cv.removeEventListener('pointerup',pu)
+      delete window.__walk;delete window.__cam;delete window.__ctl;delete window.__pick
       disposeTree(scene);scene.clear();ctl.dispose();r.dispose();r.forceContextLoss();el.removeChild(r.domElement)}
   },[])
   useEffect(()=>{api.current.room?.(task)},[task,sel])
@@ -304,9 +306,11 @@ export default function MapView(){
     {d&&sel&&<Sheet d={d} id={sel} task={task} close={()=>api.current.select?.(null)}/>}
     <div style={{position:'absolute',top:10,left:10,right:10,display:'flex',justifyContent:'space-between',font:'600 13px system-ui',color:'#0f2a1a',pointerEvents:'none'}}>
       <Toggle view="map"/><span role="status" style={{background:'#ffffffcc',padding:'3px 9px',borderRadius:99}}><b>{CONFIG.title}</b> · {info}</span></div>
-    {!sel&&<nav aria-label="Quartiers" style={{position:'absolute',top:56,left:10,right:10,display:'flex',gap:5,flexWrap:'wrap',maxWidth:600}}>{[['all','Village'],...Object.keys(QUARTERS).map(k=>[k,navLabel[k]])].map(([k,n])=><button key={k} onClick={()=>api.current.district?.(k==='all'?null:k)} aria-pressed={quarter===(k==='all'?null:k)} style={{border:quarter===k?'2px solid #fff':'1px solid #ffffffa0',borderRadius:12,padding:'7px 10px',background:k==='all'?'#fff8ed':BIOMES[k].roof,color:k==='all'?'#3d352a':'#fff8ee',boxShadow:'0 2px 6px #0003',font:'600 12px system-ui'}}>{n}</button>)}</nav>}
-    {!sel&&quarter&&<div style={{position:'absolute',bottom:14,left:10,right:10,display:'flex',gap:6,flexWrap:'wrap',maxWidth:600}}>{QUARTERS[quarter].ids.map(id=><button key={id} onClick={()=>api.current.select?.(id)} style={{background:'#fff8ed',color:'#312d26',border:0,borderRadius:10,padding:'8px 11px',font:'600 12px system-ui',boxShadow:'0 2px 6px #0003'}}>{d?.universes.find(u=>u.id===id)?.name||id}</button>)}</div>}
-    {!sel&&!quarter&&<div style={{position:'absolute',bottom:10,left:10,font:'11px system-ui',color:'#0f2a1a',background:'#ffffffb0',padding:'3px 8px',borderRadius:8}}>dresseur qui marche = chantier actif · PNJ « … » = attend {CONFIG.boss} · ✕ = bloqué · ⏱ = programmé · coche = terminé · touche une maison</div>}</div>
+    {!sel&&!walking&&<nav aria-label="Quartiers" style={{position:'absolute',top:56,left:10,right:10,display:'flex',gap:5,flexWrap:'wrap',maxWidth:600}}>{[['all','Village'],...Object.keys(QUARTERS).map(k=>[k,navLabel[k]])].map(([k,n])=><button key={k} onClick={()=>api.current.district?.(k==='all'?null:k)} aria-pressed={quarter===(k==='all'?null:k)} style={{border:quarter===k?'2px solid #fff':'1px solid #ffffffa0',borderRadius:12,padding:'7px 10px',background:k==='all'?'#fff8ed':BIOMES[k].roof,color:k==='all'?'#3d352a':'#fff8ee',boxShadow:'0 2px 6px #0003',font:'600 12px system-ui'}}>{n}</button>)}</nav>}
+    {!sel&&!walking&&quarter&&<div style={{position:'absolute',bottom:14,left:10,right:10,display:'flex',gap:6,flexWrap:'wrap',maxWidth:600}}>{QUARTERS[quarter].ids.map(id=><button key={id} onClick={()=>api.current.select?.(id)} style={{background:'#fff8ed',color:'#312d26',border:0,borderRadius:10,padding:'8px 11px',font:'600 12px system-ui',boxShadow:'0 2px 6px #0003'}}>{d?.universes.find(u=>u.id===id)?.name||id}</button>)}</div>}
+    {!sel&&!walking&&!quarter&&<div style={{position:'absolute',bottom:10,left:10,font:'11px system-ui',color:'#0f2a1a',background:'#ffffffb0',padding:'3px 8px',borderRadius:8}}>dresseur qui marche = chantier actif · PNJ « … » = attend {CONFIG.boss} · ✕ = bloqué · ⏱ = programmé · coche = terminé · touche une maison</div>}{!sel&&!walking&&<button className="walk-enter" onClick={()=>api.current.walk?.()}>Vue immersive ↗</button>}
+{walking&&<><div className="walk-info"><b>Balade de Nico</b><span>Flèches / ZQSD / WASD · Entrée pour visiter</span></div><button className="walk-exit" onClick={()=>api.current.stopWalk?.()}>Vue aérienne ↗</button><div ref={stick} className="walk-stick" aria-label="Joystick de déplacement" onPointerDown={e=>{e.currentTarget.setPointerCapture(e.pointerId);const b=e.currentTarget.getBoundingClientRect();const x=e.clientX-b.x-b.width/2,y=e.clientY-b.y-b.height/2,k=Math.min(1,30/Math.max(1,Math.hypot(x,y)));e.currentTarget.firstElementChild.style.transform=`translate(${x*k}px,${y*k}px)`;api.current.axis?.(x/42,-y/42)}} onPointerMove={e=>{if(!e.currentTarget.hasPointerCapture(e.pointerId))return;const b=e.currentTarget.getBoundingClientRect();const x=e.clientX-b.x-b.width/2,y=e.clientY-b.y-b.height/2,k=Math.min(1,30/Math.max(1,Math.hypot(x,y)));e.currentTarget.firstElementChild.style.transform=`translate(${x*k}px,${y*k}px)`;api.current.axis?.(x/42,-y/42)}} onPointerUp={e=>{e.currentTarget.firstElementChild.style.transform='';api.current.axis?.(0,0)}} onPointerCancel={e=>{e.currentTarget.firstElementChild.style.transform='';api.current.axis?.(0,0)}}><span>✥</span></div>{near&&<button className="walk-visit" onClick={()=>api.current.visit?.()}>Visiter {near.name} ↗</button>}</>}
+</div>
 }
 
 function Sheet({d,id,task,close}){
