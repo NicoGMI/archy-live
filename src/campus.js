@@ -35,6 +35,11 @@ export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,fl
  // Different roof profiles retain a coherent campus family.
  const roof=1.1+floors*fh,roofStart=g.children.length;softBlock(g,w+.30,.16,d+.30,'#587878',0,roof,0)
  for(let k=0;k<3;k++)block(g,w+.1,.018,.022,'#76928c',0,roof+.065,-.9+k*.8)
+ // Open roof terraces give the campus a softer, inhabited silhouette.
+ const terrace=new THREE.Group();
+ for(const side of[-1,1]){block(terrace,w+.12,.045,.055,'#e5e7da',0,roof+.43,side*(d/2+.03));for(let k=0;k<7;k++)block(terrace,.035,.28,.035,'#b7c9c1',-w/2+.18+k*(w-.36)/6,roof+.29,side*(d/2+.03))}
+ for(const side of[-1,1]){block(terrace,.055,.045,d+.05,'#e5e7da',side*(w/2+.03),roof+.43,0);for(let k=0;k<5;k++)block(terrace,.035,.28,.035,'#b7c9c1',side*(w/2+.03),roof+.29,-d/2+.18+k*(d-.36)/4)}
+ g.add(terrace);
  // Copper drainpipes and railings.
  for(const sd of[-1,1]){block(g,.045,roof-.5,.045,'#a98065',sd*(w/2-.05),(roof+.5)/2,d/2+.09);for(let h=0;h<3;h++)block(g,.11,.035,.075,'#b49b87',sd*(w/2-.05),1+h*1.3,d/2+.09)}
  for(const s of[-1,1]){block(g,w+.3,.22,.08,'#b7c9c1',0,roof+.15,s*(d/2+.1));block(g,.08,.22,d+.3,'#b7c9c1',s*(w/2+.1),roof+.15,0)}
@@ -49,6 +54,13 @@ export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,fl
  if(index===2){block(g,2.55,1.0,1.55,'#c2c5b5',.25,.75,-2.2);block(g,2.75,.1,1.7,'#718b83',.25,1.3,-2.2);for(let k=0;k<3;k++)block(g,.63,.61,.025,glass,-.55+k*.8,.8,-3.0);}
  if(index===4){for(let k=0;k<3;k++){block(g,.15,roof-.3,.2,'#c2c3b4',-1.4+k*1.35,(roof+.3)/2,d/2+.23);block(g,.35,.08,.5,'#d5d4bf',-1.4+k*1.35,1.1,d/2+.25)}}
 
+ // Projecting reading balconies: rounded slabs, a light rail and shallow recesses.
+ if(index!==1){const balconyY=1.1+(floors-2)*fh;
+ softBlock(g,w+.72,.14,.85,'#e1e5d8',0,balconyY+.06,d/2+.35,.055);
+ block(g,w+.62,.05,.055,'#a9c2b8',0,balconyY+.57,d/2+.74);
+ for(let k=0;k<9;k++)block(g,.03,.42,.035,'#b5c9be',-w/2-.16+k*(w+.32)/8,balconyY+.34,d/2+.74);
+ for(const side of[-1,1]){block(g,.055,.05,.74,'#a9c2b8',side*(w/2+.3),balconyY+.57,d/2+.35);block(g,.04,.42,.035,'#b5c9be',side*(w/2+.3),balconyY+.34,d/2+.02)}
+ }
  // Each school has an architectural signature, never a simulated work status.
  if(index===1){const annex=new THREE.Group();block(annex,1.3,1.7,2.7,'#ccb195',0,1.1,0);block(annex,1.5,.13,2.95,'#b88464',0,2.02,0);for(let k=0;k<3;k++)block(annex,.028,.85,.63,glass,-.668,1.18,-.85+k*.82);annex.position.set(-2.8,0,-.15);g.add(annex)}
  if(index===3){block(g,1.7,.9,1.2,'#b5cbbd',-.8,roof+.56,.1);block(g,1.85,.12,1.35,'#587878',-.8,roof+1.04,.1);for(let k=0;k<3;k++)block(g,.4,.5,.025,glass,-1.35+k*.5,roof+.56,.72)}
