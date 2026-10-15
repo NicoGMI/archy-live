@@ -22,3 +22,5 @@
 
 /* Square app mark stays centred instead of clipping inside its padded rail link. */
 .pilot-rail a:first-child{width:44px;height:44px;padding:0;display:flex;align-items:center;justify-content:center;flex:none;line-height:1;border-radius:12px}.pilot-root{background:#f1f2e7}
+
+.pilot-name.is-selected{border-color:#d4b36e;background:#fff8e5;box-shadow:0 3px 12px #8a713626;color:#705a2d}.pilot-name.is-selected:after{content:"";position:absolute;left:calc(50% - 4px);bottom:-5px;width:8px;height:8px;background:#fff8e5;border-right:1px solid #d4b36e;border-bottom:1px solid #d4b36e;transform:rotate(45deg)}
