@@ -115,12 +115,14 @@ export function campusBuilding(u,index){if(index===4)return roundCampus(u);const
  // A low-poly depth shell keeps pedestrians behind the building without redrawing window detail.
  return finishCampus(g,u.id)}
 export function campusGround(g){
- const island=(w,d,h,y,color)=>{const radius=2.2,shape=new THREE.Shape(),x=w/2,z=d/2;shape.moveTo(-x+radius,-z);shape.lineTo(x-radius,-z);shape.quadraticCurveTo(x,-z,x,-z+radius);shape.lineTo(x,z-radius);shape.quadraticCurveTo(x,z,x-radius,z);shape.lineTo(-x+radius,z);shape.quadraticCurveTo(-x,z,-x,z-radius);shape.lineTo(-x,-z+radius);shape.quadraticCurveTo(-x,-z,-x+radius,-z);const geo=new THREE.ExtrudeGeometry(shape,{depth:h,bevelEnabled:true,bevelThickness:.06,bevelSize:.06,bevelSegments:2,curveSegments:10,steps:1});geo.rotateX(-Math.PI/2);const mesh=new THREE.Mesh(geo,mat(color));mesh.position.y=y;mesh.receiveShadow=true;g.add(mesh)};island(25.9,33.9,.43,-.54,'#8ba078');island(25.65,33.65,.08,-.045,'#b9d87e');
+ // A gently irregular park edge, while the original building and street coordinates stay intact.
+ const softenEdge=(x,z)=>{const ex=Math.max(0,(Math.abs(x)-8.5)/4.4),ez=Math.max(0,(Math.abs(z)-12)/4.9);return [x+ex*(.34*Math.sin(z*.56)+.16*Math.cos(z*1.1)),z+ez*(.34*Math.sin(x*.61)+.13*Math.cos(x*1.25))]};
+ const island=(w,d,h,y,color)=>{const radius=2.2,shape=new THREE.Shape(),x=w/2,z=d/2;shape.moveTo(-x+radius,-z);shape.lineTo(x-radius,-z);shape.quadraticCurveTo(x,-z,x,-z+radius);shape.lineTo(x,z-radius);shape.quadraticCurveTo(x,z,x-radius,z);shape.lineTo(-x+radius,z);shape.quadraticCurveTo(-x,z,-x,z-radius);shape.lineTo(-x,-z+radius);shape.quadraticCurveTo(-x,-z,-x+radius,-z);const outline=new THREE.Shape(shape.getPoints(120).map(p=>{const [xx,zz]=softenEdge(p.x,p.y);return new THREE.Vector2(xx,zz)}));const geo=new THREE.ExtrudeGeometry(outline,{depth:h,bevelEnabled:true,bevelThickness:.06,bevelSize:.06,bevelSegments:2,curveSegments:10,steps:1});geo.rotateX(-Math.PI/2);const mesh=new THREE.Mesh(geo,mat(color));mesh.position.y=y;mesh.receiveShadow=true;g.add(mesh)};island(25.9,33.9,.43,-.54,'#8ba078');island(25.65,33.65,.08,-.045,'#b9d87e');
  // Soft meadow colour and shallow planted rises break the flat model-board surface.
  const meadowGeo=new THREE.PlaneGeometry(25.35,33.35,40,52);meadowGeo.rotateX(-Math.PI/2);
  const meadowPos=meadowGeo.attributes.position,meadowColors=new Float32Array(meadowPos.count*3);
  const low=new THREE.Color('#a4c96f'),high=new THREE.Color('#d0df9b');
- for(let i=0;i<meadowPos.count;i++){let x=meadowPos.getX(i),z=meadowPos.getZ(i);const cx=Math.max(0,Math.abs(x)-10.4),cz=Math.max(0,Math.abs(z)-14.4),distance=Math.hypot(cx,cz);if(distance>2.25){x=Math.sign(x)*(10.4+cx/distance*2.25);z=Math.sign(z)*(14.4+cz/distance*2.25);meadowPos.setXYZ(i,x,0,z)}const blend=.46+.19*Math.sin(x*.31+z*.16)+.15*Math.cos(z*.35-x*.1),c=low.clone().lerp(high,blend);meadowColors.set([c.r,c.g,c.b],i*3)}
+ for(let i=0;i<meadowPos.count;i++){let x=meadowPos.getX(i),z=meadowPos.getZ(i);const cx=Math.max(0,Math.abs(x)-10.4),cz=Math.max(0,Math.abs(z)-14.4),distance=Math.hypot(cx,cz);if(distance>2.25){x=Math.sign(x)*(10.4+cx/distance*2.25);z=Math.sign(z)*(14.4+cz/distance*2.25);meadowPos.setXYZ(i,x,0,z)}const [xx,zz]=softenEdge(x,z);meadowPos.setXYZ(i,xx,0,zz);const blend=.46+.19*Math.sin(x*.31+z*.16)+.15*Math.cos(z*.35-x*.1),c=low.clone().lerp(high,blend);meadowColors.set([c.r,c.g,c.b],i*3)}
  meadowGeo.setAttribute('color',new THREE.BufferAttribute(meadowColors,3));const meadowMat=mat('#ffffff').clone();meadowMat.vertexColors=true;const meadow=new THREE.Mesh(meadowGeo,meadowMat);meadow.position.y=.056;meadow.receiveShadow=true;g.add(meadow);
  for(const [x,z,w,d]of[[-10,11,2.1,2.8],[-10,-11,2.1,2.4],[10,-11,1.7,2.8],[-3,-15,1.8,1.2],[3,15,1.9,1.2]]){const rise=new THREE.Mesh(new THREE.SphereGeometry(1,20,12),mat('#b4c99b'));rise.scale.set(w,.32,d);rise.position.set(x,-.11,z);rise.receiveShadow=true;g.add(rise)}
  // Layout and roads are the original V21 geometry. A pocket garden fills the vacant west side.
@@ -199,6 +201,14 @@ export function campusGround(g){
  // A short timber viewing deck stops at the bank, not on a task route.
  softBlock(pond,1.35,.16,1.9,'#c6aa7e',-2.0,.30,.2,.04);for(let k=0;k<8;k++)block(pond,1.30,.012,.018,'#a58d6c',-2.0,.39,-.60+k*.23);for(const z of[-.62,1.03]){block(pond,.07,.72,.07,'#9a8667',-2.58,.68,z);block(pond,.055,.06,1.68,'#c5ad85',-2.58,1.02,.20)}
  pond.position.set(9,.03,-9.2);g.add(pond);
+ // Meadow tufts, soft flowering shrubs and weathered stones break the park's planted-grid edges.
+ for(const [x,z,s]of[[-11.7,-6.2,.9],[-10.9,-1.1,.7],[-11.7,9.1,.8],[-6.3,15.2,.8],[2.8,-15.5,.9],[7.3,-14.7,.7],[11.7,-.8,.7],[11.8,12.4,.8]]){
+ const clump=new THREE.Group();for(let k=0;k<6;k++){const a=k*2.4,r=.18+(k%3)*.15,xx=Math.cos(a)*r,zz=Math.sin(a)*r;const shrub=ball(clump,.30+(k%2)*.08,['#7d9d62','#91b16c','#a9be7b'][k%3],xx,.23,zz);shrub.scale.set(1,.72,1);for(let j=0;j<2;j++){const blossom=ball(clump,.065,['#e8bb85','#e6d4a2','#d4a8a0'][(k+j)%3],xx+(j-.5)*.15,.40,zz+.10);blossom.scale.y=.6}}clump.position.set(x,.1,z);clump.scale.setScalar(s);g.add(clump);
+ }
+ for(const [x,z,s]of[[-11.5,-12.0,.45],[-10.6,6.1,.36],[-5.2,15.7,.32],[4.6,-15.8,.42],[11.7,-5.1,.40],[11.3,14.1,.34]]){
+ for(let k=0;k<3;k++){const rock=ball(g,s*(1-k*.20),['#b5b69b','#c7c2a5','#a6ad93'][k],x+k*.35,.19,z+(k%2)*.32);rock.scale.set(1.1,.61,.82);rock.rotation.y=k*.7;}
+ }
+ for(let k=0;k<75;k++){const side=k%4,t=((k*0.61803398875)%1)*2-1;let x=side<2?(side===0?-11.7:11.8):t*10.8,z=side<2?t*14.8:(side===2?-15.5:15.5);x+=.22*Math.sin(k*2.1);z+=.22*Math.cos(k*1.7);for(let j=0;j<3;j++){const leaf=block(g,.026,.14+(j%2)*.08,.024,['#8aa265','#9caf73','#749762'][j],x+(j-1)*.07,.19,z);leaf.rotation.z=(j-1)*.32;}}
  // Granite paving has subtle joints instead of noisy procedural textures.
  for(let k=0;k<6;k++)block(g,.014,.009,1.7,'#7e9591',7.5+k*.3,.195,10);
  return {water}
