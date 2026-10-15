@@ -152,11 +152,11 @@ export function campusGround(g){
  block(g,.8,1.25,.38,'#bcc7ba',6,.72,12.4);block(g,.88,.11,.43,'#849f98',6,1.4,12.4);block(g,.58,.46,.045,'#365e61',6,.95,12.61);
  for(const x of[-1.5,-.2,1.1]){block(g,1,.13,1.3,'#92a88c',x,.16,13);block(g,.85,.04,1.15,'#a2bb96',x,.255,13);for(let k=0;k<3;k++)ball(g,.11,['#d9b488','#b8a3ae','#d6c5a0'][k],x-.2+k*.2,.39,13)}
  // Connected planting beds frame the pedestrian campus, with distinct quiet spaces.
- for(const [x,z,w,d]of[[-9,-10,4,7],[-9,11,4,6],[9,-10,4,5],[-4,-14,4,2],[3,14,4,2]]){garden(g,x,z,w,d);for(let i=0;i<5;i++){const xx=x+(i%3-1)*w*.28,zz=z+(Math.floor(i/3)-.5)*d*.55;ball(g,.26,['#6b9273','#8aaa80','#a0b68b'][i%3],xx,.31,zz)}}
- for(const [x,z,s]of[[-10,-9,1.3],[-8,-11,1.2],[-10,12,1.2],[-8,10,1.15],[9,-12,1.25],[10,-8,1.3],[-3,-15,1.1],[2,15,1.15]])tree(g,x,z,s);
- for(const [x,z,ry]of[[-8.5,-8,.4],[-7,11,-.2],[8.5,-9,Math.PI/2]])bench(g,x,z,ry);
+ for(const [x,z,w,d]of[[-9,-10,4,7],[-9,11,4,6],[-4,-14,4,2],[3,14,4,2]]){garden(g,x,z,w,d);for(let i=0;i<5;i++){const xx=x+(i%3-1)*w*.28,zz=z+(Math.floor(i/3)-.5)*d*.55;ball(g,.26,['#6b9273','#8aaa80','#a0b68b'][i%3],xx,.31,zz)}}
+ for(const [x,z,s]of[[-10,-9,1.3],[-8,-11,1.2],[-10,12,1.2],[-8,10,1.15],[9,-13,1.25],[11,-5,1.15],[-3,-15,1.1],[2,15,1.15]])tree(g,x,z,s);
+ for(const [x,z,ry]of[[-8.5,-8,.4],[-7,11,-.2],[6.8,-11,Math.PI/2]])bench(g,x,z,ry);
 
- for(const [x,z]of[[-10,10],[-8,-10],[9,-8],[-2,14],[5,14]]){for(let k=0;k<5;k++){const xx=x+(k-2)*.25;block(g,.025,.18,.025,'#789267',xx,.23,z);const flower=ball(g,.075,['#efc886','#d4a0aa','#f0ddac'][k%3],xx,.34,z);flower.scale.y=.6;}}
+ for(const [x,z]of[[-10,10],[-8,-10],[11,-6],[-2,14],[5,14]]){for(let k=0;k<5;k++){const xx=x+(k-2)*.25;block(g,.025,.18,.025,'#789267',xx,.23,z);const flower=ball(g,.075,['#efc886','#d4a0aa','#f0ddac'][k%3],xx,.34,z);flower.scale.y=.6;}}
  // A garden-only limestone walk connects the reading grove without changing V21 streets.
  const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(-11,.14,12),new THREE.Vector3(-8.5,.14,8),new THREE.Vector3(-10,.14,4),new THREE.Vector3(-9.5,.14,0),new THREE.Vector3(-10,.14,-5),new THREE.Vector3(-8.5,.14,-10),new THREE.Vector3(-9,.14,-14)]);
  const pts=curve.getPoints(72),vertices=[],indices=[];pts.forEach((p,i)=>{const tangent=curve.getTangent(i/72),side=new THREE.Vector3(-tangent.z,0,tangent.x).multiplyScalar(.4);vertices.push(p.x+side.x,p.y,p.z+side.z,p.x-side.x,p.y,p.z-side.z);if(i<72){const k=i*2;indices.push(k,k+2,k+1,k+1,k+2,k+3)}});const walkGeo=new THREE.BufferGeometry();walkGeo.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));walkGeo.setAttribute('uv',new THREE.Float32BufferAttribute(new Float32Array(vertices.length/3*2),2));walkGeo.setIndex(indices);walkGeo.computeVertexNormals();g.add(new THREE.Mesh(walkGeo,mat('#c9cfb8')));
@@ -180,6 +180,17 @@ export function campusGround(g){
  bed.position.set(x,0,z);bed.rotation.y=ry;g.add(bed);
  }
  for(const [x,z,ry]of[[-8.9,5.5,.2],[-8.55,6.2,.1],[-8.3,6.9,-.1],[-9.3,-7.8,-.2],[-9.05,-8.5,.1]]){const stone=softBlock(g,.58,.045,.4,'#d5d8c5',x,.17,z,.04);stone.rotation.y=ry;}
+ // A botanical pond gives the quiet east garden a softer silhouette and a warm blue counterpoint.
+ const pond=new THREE.Group(),edge=[];for(let k=0;k<48;k++){const a=k*Math.PI/24,r=1+.09*Math.sin(a*3)+.045*Math.cos(a*5);edge.push(new THREE.Vector2(Math.cos(a)*2.05*r,Math.sin(a)*2.85*r));}
+ const pondShape=new THREE.Shape(edge),rimGeo=new THREE.ExtrudeGeometry(pondShape,{depth:.10,bevelEnabled:true,bevelThickness:.04,bevelSize:.13,bevelSegments:2,steps:1,curveSegments:3});rimGeo.rotateX(-Math.PI/2);const rim=new THREE.Mesh(rimGeo,mat('#c9c6a1'));rim.position.y=.19;rim.receiveShadow=true;pond.add(rim);
+ const waterGeo=new THREE.ShapeGeometry(pondShape,3);waterGeo.rotateX(-Math.PI/2);const pondWater=new THREE.Mesh(waterGeo,mat('#6cb6b3'));pondWater.scale.set(.91,1,.94);pondWater.position.y=.36;pond.add(pondWater);
+ for(const [x,z,w]of[[-.7,-1.5,.9],[.55,.25,1.1],[-.2,1.6,.8]]){const shine=new THREE.Mesh(new THREE.TorusGeometry(w,.012,4,32,Math.PI*.72),mat('#afdad0'));shine.rotation.x=Math.PI/2;shine.rotation.z=.3;shine.scale.z=.45;shine.position.set(x,.368,z);pond.add(shine)}
+ for(const [x,z]of[[1.1,1.3],[.65,1.6],[-1.2,-.8]]){const lily=new THREE.Mesh(new THREE.CircleGeometry(.20,14,0,Math.PI*1.86),mat('#81a975'));lily.rotation.x=-Math.PI/2;lily.rotation.z=.3;lily.position.set(x,.375,z);pond.add(lily)}
+ for(const [x,z]of[[-1.8,.8],[1.6,-1.45],[1.35,2.0]]){for(let k=0;k<4;k++){const xx=x+(k%2)*.15,zz=z+Math.floor(k/2)*.13;const stalk=block(pond,.027,.55+k*.05,.025,'#779768',xx,.47,zz);stalk.rotation.z=(k-1.5)*.07;const seed=ball(pond,.06,'#a78d62',xx,.77+k*.05,zz);seed.scale.y=2.2;}}
+ for(let k=0;k<9;k++){const a=k*Math.PI/4.5,stone=ball(pond,.18,'#b9baa1',Math.cos(a)*2.1,.23,Math.sin(a)*2.9);stone.scale.set(1.25,.52,.85);}
+ // A short timber viewing deck stops at the bank, not on a task route.
+ softBlock(pond,1.35,.16,1.9,'#c6aa7e',-2.0,.30,.2,.04);for(let k=0;k<8;k++)block(pond,1.30,.012,.018,'#a58d6c',-2.0,.39,-.60+k*.23);for(const z of[-.62,1.03]){block(pond,.07,.72,.07,'#9a8667',-2.58,.68,z);block(pond,.055,.06,1.68,'#c5ad85',-2.58,1.02,.20)}
+ pond.position.set(9,.03,-9.2);g.add(pond);
  // Granite paving has subtle joints instead of noisy procedural textures.
  for(let k=0;k<6;k++)block(g,.014,.009,1.7,'#7e9591',7.5+k*.3,.195,10);
  return {water}
