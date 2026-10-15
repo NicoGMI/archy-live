@@ -34,20 +34,20 @@ function roundCampus(u){const g=new THREE.Group(),cream='#e6d8b6',green='#638e7d
  block(g,2.1,.13,1.05,'#ddd7bb',0,.24,2.55);block(g,2.4,.10,.65,'#c8cfb7',0,.12,3.0);const brand=logoBoard(u.id,1.35,.39);if(brand){brand.position.set(0,1.61,2.20);g.add(brand)}planter(g,-1.65,2.0,.75);planter(g,1.65,2.0,.75);
  return finishCampus(g,u.id)}
 function finishCampus(g,id){g.updateMatrixWorld(true);const shells=[];g.traverse(o=>{if(!o.isMesh||!o.material?.isMeshLambertMaterial)return;o.geometry.computeBoundingBox();const b=o.geometry.boundingBox,size=new THREE.Vector3();b.getSize(size);if(size.x<.3||size.y<.08||size.z<.3)return;const geo=new THREE.BoxGeometry(size.x,size.y,size.z),center=new THREE.Vector3();b.getCenter(center);geo.translate(center.x,center.y,center.z);geo.applyMatrix4(o.matrixWorld);shells.push(geo)});g.userData.depthGeometry=mergeGeometries(shells);shells.forEach(geo=>geo.dispose());g.userData.uni=id;return g}
-export function campusBuilding(u,index){if(index===4)return roundCampus(u);const g=new THREE.Group(),w=4.4,d=3.3,floors=[3,4,3,4,3][index],fh=1.02,accent=['#4e8578','#c28c57','#8a9c73','#4f8b91','#789c8d'][index],glass=['#437b89','#608694','#677f7b','#3c718b','#54868b'][index]
- block(g,5.35,.2,4.5,'#c6ceca',0,.12,0,.08);block(g,5.15,.1,4.3,'#eeeee6',0,.26,0)
+export function campusBuilding(u,index){if(index===4)return roundCampus(u);const g=new THREE.Group(),w=[4.4,4.4,5.1,3.8,4.4][index],d=3.3,floors=[3,4,2,5,3][index],fh=1.02,accent=['#4e8578','#c28c57','#8a9c73','#4f8b91','#789c8d'][index],glass=['#437b89','#608694','#677f7b','#3c718b','#54868b'][index]
+ block(g,w+.95,.2,4.5,'#c6ceca',0,.12,0,.08);block(g,w+.75,.1,4.3,'#eeeee6',0,.26,0)
  block(g,w,.8,d,'#efe0bd',0,.68,0)
  for(let row=0;row<floors;row++){const start=g.children.length,y=1.1+row*fh;block(g,w,.91,d,['#e9d5ad','#e5c29a','#e2d8ae','#d6d9b4','#e8d6a8'][index],0,y+.42,0)
   softBlock(g,w+.17,.12,d+.18,accent,0,y+.94,0);softBlock(g,w+.29,.08,d+.30,'#f2e5c9',0,y+1.005,0)
   // Windows recessed behind continuous frames. Side elevations have the same level of detail.
-  for(let k=0;k<4;k++){const x=-1.55+k*1.035;block(g,.78,.64,.025,glass,x,y+.43,d/2+.019,.006);block(g,.81,.055,.13,'#a9bbb7',x,y+.1,d/2+.055);block(g,.035,.68,.045,'#c5d2c9',x,y+.43,d/2+.04,.009);if(index===0||index===3)block(g,.8,.035,.04,'#c5d2c9',x,y+.43,d/2+.04,.009)}
+  for(let k=0;k<4;k++){const x=(k-1.5)*(w-.98)/3;block(g,.78,.64,.025,glass,x,y+.43,d/2+.019,.006);block(g,.81,.055,.13,'#a9bbb7',x,y+.1,d/2+.055);block(g,.035,.68,.045,'#c5d2c9',x,y+.43,d/2+.04,.009);if(index===0||index===3)block(g,.8,.035,.04,'#c5d2c9',x,y+.43,d/2+.04,.009)}
   // Pale reflected sky sits inside selected panes, not room-occupancy lights.
-  for(let k=0;k<4;k++)if((k+row+index)%3===0){const x=-1.55+k*1.035,verts=[-.35,-.27,0,.10,.27,0,-.35,.27,0];
+  for(let k=0;k<4;k++)if((k+row+index)%3===0){const x=(k-1.5)*(w-.98)/3,verts=[-.35,-.27,0,.10,.27,0,-.35,.27,0];
    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));geo.setAttribute('uv',new THREE.Float32BufferAttribute([0,0,0,1,1,1],2));geo.computeVertexNormals();
    for(const sd of[-1,1]){const reflection=new THREE.Mesh(geo.clone(),mat('#82a6ac'));reflection.position.set(x,y+.43,sd*(d/2+.035));if(sd<0)reflection.rotation.y=Math.PI;g.add(reflection)}geo.dispose();
   }
   // Rear elevations remain finished when the campus is rotated.
-  for(let k=0;k<4;k++){const x=-1.55+k*1.035;block(g,.78,.64,.025,glass,x,y+.43,-d/2-.019,.006);block(g,.81,.055,.13,'#a9bbb7',x,y+.1,-d/2-.055);block(g,.035,.68,.045,'#c5d2c9',x,y+.43,-d/2-.04,.009);if(index===0||index===3)block(g,.8,.035,.04,'#c5d2c9',x,y+.43,-d/2-.04,.009)}
+  for(let k=0;k<4;k++){const x=(k-1.5)*(w-.98)/3;block(g,.78,.64,.025,glass,x,y+.43,-d/2-.019,.006);block(g,.81,.055,.13,'#a9bbb7',x,y+.1,-d/2-.055);block(g,.035,.68,.045,'#c5d2c9',x,y+.43,-d/2-.04,.009);if(index===0||index===3)block(g,.8,.035,.04,'#c5d2c9',x,y+.43,-d/2-.04,.009)}
   for(const s of[-1,1])for(let k=0;k<3;k++){const z=-1.05+k*1.05;block(g,.028,.63,.74,glass,s*(w/2+.015),y+.43,z);block(g,.08,.04,.8,'#c5d2c9',s*(w/2+.04),y+.1,z);block(g,.04,.65,.035,'#c5d2c9',s*(w/2+.04),y+.43,z)}
   // Coloured recessed strips, not a progress indicator.
   block(g,.13,.86,.12,accent,-w/2+.13,y+.43,d/2+.04)
@@ -100,6 +100,8 @@ export function campusBuilding(u,index){if(index===4)return roundCampus(u);const
  // Rounded lecture pavilion and glazed study wing make the schools distinct at map scale.
  if(index===4){const pavilion=new THREE.Group();for(const [r,h,y,c]of[[1.03,1.4,.98,'#d9d3ad'],[1.1,.14,1.74,'#567f78'],[1.18,.10,1.85,'#e7dfbd']]){const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,32),mat(c));o.position.y=y;o.castShadow=true;pavilion.add(o)}for(let k=0;k<12;k++){const a=k*Math.PI/6,x=Math.sin(a)*1.04,z=Math.cos(a)*1.04;const pane=block(pavilion,.38,.88,.045,glass,x,1.03,z);pane.rotation.y=a;const mullion=block(pavilion,.045,1.24,.07,'#eee2be',Math.sin(a+.25)*1.065,1.04,Math.cos(a+.25)*1.065);mullion.rotation.y=a+.25}pavilion.position.set(-2.6,0,.2);g.add(pavilion)}
  if(index===0){const wing=new THREE.Group();block(wing,2.45,1.15,2.7,'#65998c',0,.85,0);block(wing,2.65,.14,2.9,'#e6dfbc',0,1.48,0);for(let k=0;k<4;k++){block(wing,.48,.82,.035,'#6c969b',-.88+k*.58,.94,1.37);block(wing,.045,1.04,.075,'#e6dfbc',-.88+k*.58,1.0,1.40)}const canopy=new THREE.Mesh(new THREE.SphereGeometry(1,20,10,0,Math.PI*2,0,Math.PI/2),mat('#86aaa0'));canopy.scale.set(1.22,.78,1.32);canopy.position.y=1.56;canopy.castShadow=true;wing.add(canopy);for(const side of[-1,1]){const arch=new THREE.Mesh(new THREE.TorusGeometry(1,.035,4,24,Math.PI),mat('#d5dfc3'));arch.scale.set(1.23,.78,1);arch.position.set(0,1.56,side*.70);wing.add(arch)}wing.position.set(-2.7,0,-.15);g.add(wing)}
+ // IAE is a low terraced teaching hall with a sheltered garden arcade.
+ if(index===2){const hall=new THREE.Group();block(hall,2.25,1.2,2.8,'#d9d3b0',0,.88,0);softBlock(hall,2.5,.16,3.05,'#8da37f',0,1.54,0);for(let k=0;k<3;k++){block(hall,.54,.74,.035,glass,-.70+k*.7,.95,1.42);block(hall,.06,.90,.08,'#e8e1bf',-.98+k*.7,.96,1.46)}for(const z of[-1.3,1.3]){block(hall,2.45,.045,.05,'#d8dec0',0,1.98,z);for(const x of[-1.1,0,1.1])block(hall,.035,.34,.035,'#b9c7a9',x,1.8,z)}planter(hall,0,0,1.4);for(const o of hall.children.slice(-5))o.position.y+=1.28;hall.position.set(2.8,0,-.2);g.add(hall);}
  // Ground-floor lobby, canopy, layered steps, framed door and railings.
  block(g,1.35,.65,.07,glass,0,.68,d/2+.03);block(g,.065,.69,.09,'#c5d3ce',0,.68,d/2+.08)
  softBlock(g,1.85,.16,1.12,accent,0,1.04,d/2+.4);for(const s of[-1,1])block(g,.055,.77,.055,'#bcc9c3',s*.74,.65,d/2+.73)
