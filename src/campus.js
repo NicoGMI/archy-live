@@ -25,6 +25,11 @@ export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,fl
   softBlock(g,w+.17,.12,d+.18,accent,0,y+.94,0);softBlock(g,w+.29,.08,d+.30,'#e4e8de',0,y+1.005,0)
   // Windows recessed behind continuous frames. Side elevations have the same level of detail.
   for(let k=0;k<4;k++){const x=-1.55+k*1.035;block(g,.78,.64,.025,glass,x,y+.43,d/2+.019,.006);block(g,.81,.055,.13,'#a9bbb7',x,y+.1,d/2+.055);block(g,.035,.68,.045,'#c5d2c9',x,y+.43,d/2+.04,.009);if(index===0||index===3)block(g,.8,.035,.04,'#c5d2c9',x,y+.43,d/2+.04,.009)}
+  // Pale reflected sky sits inside selected panes, not room-occupancy lights.
+  for(let k=0;k<4;k++)if((k+row+index)%3===0){const x=-1.55+k*1.035,verts=[-.35,-.27,0,.10,.27,0,-.35,.27,0];
+   const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));geo.setAttribute('uv',new THREE.Float32BufferAttribute([0,0,0,1,1,1],2));geo.computeVertexNormals();
+   for(const sd of[-1,1]){const reflection=new THREE.Mesh(geo.clone(),mat('#82a6ac'));reflection.position.set(x,y+.43,sd*(d/2+.035));if(sd<0)reflection.rotation.y=Math.PI;g.add(reflection)}geo.dispose();
+  }
   // Rear elevations remain finished when the campus is rotated.
   for(let k=0;k<4;k++){const x=-1.55+k*1.035;block(g,.78,.64,.025,glass,x,y+.43,-d/2-.019,.006);block(g,.81,.055,.13,'#a9bbb7',x,y+.1,-d/2-.055);block(g,.035,.68,.045,'#c5d2c9',x,y+.43,-d/2-.04,.009);if(index===0||index===3)block(g,.8,.035,.04,'#c5d2c9',x,y+.43,-d/2-.04,.009)}
   for(const s of[-1,1])for(let k=0;k<3;k++){const z=-1.05+k*1.05;block(g,.028,.63,.74,glass,s*(w/2+.015),y+.43,z);block(g,.08,.04,.8,'#c5d2c9',s*(w/2+.04),y+.1,z);block(g,.04,.65,.035,'#c5d2c9',s*(w/2+.04),y+.43,z)}
