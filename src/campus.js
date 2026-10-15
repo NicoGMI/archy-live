@@ -8,7 +8,7 @@ function bevelBox(w,h,d,r){w-=r*2;d-=r*2;const shape=new THREE.Shape();shape.mov
 export function block(g,w,h,d,c,x,y,z,r=.045){const o=new THREE.Mesh((w*h*d>5&&Math.min(w,h,d)>.18?bevelBox(w,h,d,Math.min(r,w/4,h/4,d/4)):new THREE.BoxGeometry(w,h,d)),mat(c));o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;g.add(o);return o}
 const ball=(g,r,c,x,y,z)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(r,12,8),mat(c));o.position.set(x,y,z);o.castShadow=true;g.add(o);return o}
 export function tree(g,x,z,s=1){const t=new THREE.Group(),v=Math.abs(Math.round(x*13+z*7))%3;const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.075,.13,1.15,7),mat('#b89a70'));trunk.position.y=.57;trunk.castShadow=true;t.add(trunk);
- const palettes=[['#448958','#71a95d','#a2c46d'],['#4d8c5c','#80b269','#b1cb7c'],['#518e58','#78aa61','#acd17b']],c=palettes[v];
+ const palettes=[['#3f8b56','#75b96c','#abd57e'],['#468e58','#8ac477','#b8db88'],['#408956','#72b66a','#b0d785']],c=palettes[v];
  // One sculpted crown with a baked vertical colour wash, not intersecting colour balls.
  const geo=new THREE.SphereGeometry(1,16,12),pos=geo.attributes.position,colors=new Float32Array(pos.count*3),dark=new THREE.Color(c[0]),light=new THREE.Color(c[1]);
  for(let i=0;i<pos.count;i++){const y=pos.getY(i),x=pos.getX(i),z=pos.getZ(i),wave=1+.045*Math.sin(x*7+z*4)*Math.sin(y*6);pos.setXYZ(i,x*wave,y,z*wave);const color=dark.clone().lerp(light,Math.max(0,Math.min(1,(y+.8)*.38+x*.10+z*.06)));colors.set([color.r,color.g,color.b],i*3)}geo.setAttribute('color',new THREE.BufferAttribute(colors,3));geo.computeVertexNormals();const crownMat=mat('#ffffff').clone();crownMat.vertexColors=true;const crown=new THREE.Mesh(geo,crownMat);crown.position.y=1.6;crown.scale.set(v===1?.68:.78,v===1?.94:.78,v===2?.67:.72);crown.castShadow=true;t.add(crown);
@@ -19,7 +19,7 @@ export function planter(g,x,z,w=1.1){block(g,w,.34,.65,'#dedbd3',x,.23,z,.075);b
 export function bench(g,x,z,ry=0){const b=new THREE.Group();for(let i=0;i<3;i++)block(b,1.3,.065,.12,'#b99b79',0,.46,i*.13-.13);block(b,1.3,.25,.07,'#b99b79',0,.69,-.24);for(const s of[-1,1]){block(b,.06,.44,.06,'#66777d',s*.48,.23,0);block(b,.06,.65,.06,'#66777d',s*.48,.35,-.21)}b.position.set(x,0,z);b.rotation.y=ry;g.add(b)}
 export function lamp(g,x,z){const t=new THREE.Group();block(t,.07,2,.07,'#70848b',0,1,0);block(t,.45,.055,.22,'#eaf0e9',.16,2.02,0);block(t,.34,.025,.16,'#ffffe5',.16,1.99,0);t.position.set(x,0,z);g.add(t)}
 // A round learning pavilion anchors the north-east campus without copying the other blocks.
-function roundCampus(u){const g=new THREE.Group(),cream='#e6d8b6',green='#638e7d',glass='#568b91';
+function roundCampus(u){const g=new THREE.Group(),cream='#e6d8b6',green='#638e7d',glass='#4d9197';
  const drum=(r,h,y,c)=>{const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,48),mat(c));o.position.y=y;o.castShadow=true;o.receiveShadow=true;g.add(o);return o};
  drum(2.6,.18,.15,'#c5cbb7');drum(2.49,.10,.29,'#eee4c9');drum(2.15,.62,.64,cream);
  for(let row=0;row<3;row++){const y=1.0+row*1.1;drum(2.12,.96,y+.48,cream);drum(2.25,.12,y+1.0,green);drum(2.33,.07,y+1.08,'#f2e6c8');
@@ -54,7 +54,7 @@ export function campusBuilding(u,index){if(index===4)return roundCampus(u);const
   if((row===floors-1&&(index===1||index===3))||(index===2&&row>=floors-2)){const tier=new THREE.Group();for(const child of g.children.slice(start))tier.add(child);const inset=index===2?(row===floors-1?.76:.9):.86;tier.scale.set(inset,1,inset);g.add(tier)}
  }
  // Different roof profiles retain a coherent campus family.
- const roof=1.1+floors*fh,roofStart=g.children.length;softBlock(g,w+.30,.16,d+.30,'#587878',0,roof,0)
+ const roof=1.1+floors*fh,roofStart=g.children.length;softBlock(g,w+.30,.16,d+.30,'#4c8178',0,roof,0)
  for(let k=0;k<3;k++)block(g,w+.1,.018,.022,'#76928c',0,roof+.065,-.9+k*.8)
  // Open roof terraces give the campus a softer, inhabited silhouette.
  const terrace=new THREE.Group();
@@ -90,7 +90,7 @@ export function campusBuilding(u,index){if(index===4)return roundCampus(u);const
  }
  // Each school has an architectural signature, never a simulated work status.
  if(index===1){const annex=new THREE.Group();block(annex,1.3,1.7,2.7,'#ccb195',0,1.1,0);block(annex,1.5,.13,2.95,'#b88464',0,2.02,0);for(let k=0;k<3;k++)block(annex,.028,.85,.63,glass,-.668,1.18,-.85+k*.82);annex.position.set(-2.8,0,-.15);g.add(annex)}
- if(index===3){block(g,1.7,.9,1.2,'#b5cbbd',-.8,roof+.56,.1);block(g,1.85,.12,1.35,'#587878',-.8,roof+1.04,.1);for(let k=0;k<3;k++)block(g,.4,.5,.025,glass,-1.35+k*.5,roof+.56,.72)}
+ if(index===3){block(g,1.7,.9,1.2,'#b5cbbd',-.8,roof+.56,.1);block(g,1.85,.12,1.35,'#4c8178',-.8,roof+1.04,.1);for(let k=0;k<3;k++)block(g,.4,.5,.025,glass,-1.35+k*.5,roof+.56,.72)}
  if(index===4){block(g,1.65,.45,1.25,'#aac6c4',.15,roof+.4,-.15);block(g,1.8,.12,1.4,'#64878b',.15,roof+.69,-.15);for(let k=0;k<3;k++)block(g,.08,.45,1.25,'#dde5df',-.55+k*.7,roof+.4,-.15)}
  if(index===2){for(const sd of[-1,1]){block(g,.25,1.2,.3,'#d8d6c4',sd*1.17,.83,d/2+.4);block(g,.4,.13,.5,'#f0ead7',sd*1.17,1.47,d/2+.4)}block(g,2.9,.16,.68,'#a6b8a6',0,1.58,d/2+.4)}
  // Copper fins, limestone columns and a blue-green corner give each school a readable signature.
@@ -121,13 +121,13 @@ export function campusGround(g){
  // Soft meadow colour and shallow planted rises break the flat model-board surface.
  const meadowGeo=new THREE.PlaneGeometry(25.35,33.35,40,52);meadowGeo.rotateX(-Math.PI/2);
  const meadowPos=meadowGeo.attributes.position,meadowColors=new Float32Array(meadowPos.count*3);
- const low=new THREE.Color('#9cc985'),high=new THREE.Color('#c7dfa2');
+ const low=new THREE.Color('#9aca82'),high=new THREE.Color('#d0e4a6');
  for(let i=0;i<meadowPos.count;i++){let x=meadowPos.getX(i),z=meadowPos.getZ(i);const cx=Math.max(0,Math.abs(x)-10.4),cz=Math.max(0,Math.abs(z)-14.4),distance=Math.hypot(cx,cz);if(distance>2.25){x=Math.sign(x)*(10.4+cx/distance*2.25);z=Math.sign(z)*(14.4+cz/distance*2.25);meadowPos.setXYZ(i,x,0,z)}const [xx,zz]=softenEdge(x,z);meadowPos.setXYZ(i,xx,0,zz);const blend=.46+.19*Math.sin(x*.31+z*.16)+.15*Math.cos(z*.35-x*.1),c=low.clone().lerp(high,blend);meadowColors.set([c.r,c.g,c.b],i*3)}
  meadowGeo.setAttribute('color',new THREE.BufferAttribute(meadowColors,3));const meadowMat=mat('#ffffff').clone();meadowMat.vertexColors=true;const meadow=new THREE.Mesh(meadowGeo,meadowMat);meadow.position.y=.056;meadow.receiveShadow=true;g.add(meadow);
  for(const [x,z,w,d]of[[-10,11,2.1,2.8],[-10,-11,2.1,2.4],[10,-11,1.7,2.8],[-3,-15,1.8,1.2],[3,15,1.9,1.2]]){const rise=new THREE.Mesh(new THREE.SphereGeometry(1,20,12),mat('#b4c99b'));rise.scale.set(w,.32,d);rise.position.set(x,-.11,z);rise.receiveShadow=true;g.add(rise)}
  // Layout and roads are the original V21 geometry. A pocket garden fills the vacant west side.
  block(g,4,.12,6,'#8faba0',10,.09,8);block(g,3.7,.04,5.7,'#b3c9ad',10,.17,8)
- const f=new THREE.Group();const basin=new THREE.Mesh(new THREE.CylinderGeometry(1.05,1.13,.25,40),mat('#e9eae1'));basin.position.y=.25;basin.receiveShadow=true;f.add(basin);const water=new THREE.Mesh(new THREE.CircleGeometry(.92,40),mat('#84c7d5',.24));water.rotation.x=-Math.PI/2;water.position.y=.38;f.add(water);const center=new THREE.Mesh(new THREE.CylinderGeometry(.18,.27,.5,16),mat('#e3e9df'));center.position.y=.6;f.add(center);ball(f,.25,'#c7e2d3',0,.89,0);f.position.set(10,0,8);g.add(f)
+ const f=new THREE.Group();const basin=new THREE.Mesh(new THREE.CylinderGeometry(1.05,1.13,.25,40),mat('#e9eae1'));basin.position.y=.25;basin.receiveShadow=true;f.add(basin);const water=new THREE.Mesh(new THREE.CircleGeometry(.92,40),mat('#74c5d3',.24));water.rotation.x=-Math.PI/2;water.position.y=.38;f.add(water);const center=new THREE.Mesh(new THREE.CylinderGeometry(.18,.27,.5,16),mat('#e3e9df'));center.position.y=.6;f.add(center);ball(f,.25,'#c7e2d3',0,.89,0);f.position.set(10,0,8);g.add(f)
  bench(g,8.7,7.3,Math.PI/2);bench(g,11.3,7.3,-Math.PI/2);bench(g,10,10.1)
  for(const [x,z] of [[-11,14],[-8,14],[-4,14],[0,14],[5,15],[10,14],[-11,-14],[-8,-14],[-2,-14],[6,-14],[10,-10],[-11,-8],[-11,7],[-8,7]])tree(g,x,z,.85)
  for(const [x,z] of [[-10,11],[-9,10],[-8,12],[-11,-11],[-9,-12],[-7,-13],[6,13],[8,13],[10,12],[11,11],[-11,5],[-11,3]])tree(g,x,z,.6);
@@ -193,7 +193,7 @@ export function campusGround(g){
  // A botanical pond gives the quiet east garden a softer silhouette and a warm blue counterpoint.
  const pond=new THREE.Group(),edge=[];for(let k=0;k<48;k++){const a=k*Math.PI/24,r=1+.09*Math.sin(a*3)+.045*Math.cos(a*5);edge.push(new THREE.Vector2(Math.cos(a)*2.05*r,Math.sin(a)*2.85*r));}
  const pondShape=new THREE.Shape(edge),rimGeo=new THREE.ExtrudeGeometry(pondShape,{depth:.10,bevelEnabled:true,bevelThickness:.04,bevelSize:.13,bevelSegments:2,steps:1,curveSegments:3});rimGeo.rotateX(-Math.PI/2);const rim=new THREE.Mesh(rimGeo,mat('#c9c6a1'));rim.position.y=.19;rim.receiveShadow=true;pond.add(rim);
- const waterGeo=new THREE.ShapeGeometry(pondShape,3);waterGeo.rotateX(-Math.PI/2);const pondWater=new THREE.Mesh(waterGeo,mat('#6cb6b3'));pondWater.scale.set(.91,1,.94);pondWater.position.y=.36;pond.add(pondWater);
+ const waterGeo=new THREE.ShapeGeometry(pondShape,3);waterGeo.rotateX(-Math.PI/2);const pondWater=new THREE.Mesh(waterGeo,mat('#61b8c4'));pondWater.scale.set(.91,1,.94);pondWater.position.y=.36;pond.add(pondWater);
  for(const [x,z,w]of[[-.7,-1.5,.9],[.55,.25,1.1],[-.2,1.6,.8]]){const shine=new THREE.Mesh(new THREE.TorusGeometry(w,.012,4,32,Math.PI*.72),mat('#afdad0'));shine.rotation.x=Math.PI/2;shine.rotation.z=.3;shine.scale.z=.45;shine.position.set(x,.368,z);pond.add(shine)}
  for(const [x,z]of[[1.1,1.3],[.65,1.6],[-1.2,-.8]]){const lily=new THREE.Mesh(new THREE.CircleGeometry(.20,14,0,Math.PI*1.86),mat('#81a975'));lily.rotation.x=-Math.PI/2;lily.rotation.z=.3;lily.position.set(x,.375,z);pond.add(lily)}
  for(const [x,z]of[[-1.8,.8],[1.6,-1.45],[1.35,2.0]]){for(let k=0;k<4;k++){const xx=x+(k%2)*.15,zz=z+Math.floor(k/2)*.13;const stalk=block(pond,.027,.55+k*.05,.025,'#779768',xx,.47,zz);stalk.rotation.z=(k-1.5)*.07;const seed=ball(pond,.06,'#a78d62',xx,.77+k*.05,zz);seed.scale.y=2.2;}}
@@ -223,6 +223,9 @@ export function campusGround(g){
  bench(shelter,0,.48);shelter.position.set(9.7,.04,-13.5);shelter.rotation.y=-.18;g.add(shelter);
  // A restrained warm border highlights the layered park foundation, without changing the biome.
  const edging=new THREE.Group();for(const [x,z,w,d]of[[-9.1,16.25,3.4,.16],[-4.5,16.25,3.4,.16],[.1,16.25,3.4,.16],[4.7,16.25,3.4,.16]])softBlock(edging,w,.10,d,'#b8bb8b',x,-.08,z,.025);g.add(edging);
+ // A curved line of stepping stones and reeds links the pond deck to the sheltered reading corner.
+ for(let k=0;k<8;k++){const t=k/7,x=6.8+.55*Math.sin(t*Math.PI),z=-10.2-t*3.5;const stone=softBlock(g,.45,.045,.32,'#d9d1ae',x,.16,z,.035);stone.rotation.y=.25*Math.sin(k);}
+ for(const [x,z]of[[10.7,-11.4],[7.5,-7.3],[10.8,-7.2]]){for(let k=0;k<5;k++){const leaf=block(g,.045,.40+(k%3)*.11,.035,['#6f9b6c','#96b173','#a7bd82'][k%3],x+(k-2)*.09,.34,z+.11*Math.cos(k));leaf.rotation.z=(k-2)*.14;}const stone=ball(g,.17,'#b1b79c',x+.3,.15,z+.12);stone.scale.y=.6;}
  // Granite paving has subtle joints instead of noisy procedural textures.
  for(let k=0;k<6;k++)block(g,.014,.009,1.7,'#7e9591',7.5+k*.3,.195,10);
  return {water}
