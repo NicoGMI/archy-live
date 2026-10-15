@@ -55,7 +55,7 @@ export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,fl
  for(let i=0;i<3;i++)ball(g,.24,'#79ad85',-1.3+i*.42,roof+.33,1.08)
  if(index===1||index===2||index===3){const cap=new THREE.Group();for(const child of g.children.slice(roofStart))cap.add(child);const inset=index===2?.76:.86;cap.scale.set(inset,1,inset);g.add(cap)}
  // Distinct secondary volumes create silhouettes, while keeping the campus palette.
- if(index===0){block(g,1.35,2.25,2.65,'#9db5ab',-2.7,1.37,-.15);block(g,1.5,.13,2.8,'#587878',-2.7,2.55,-.15);for(let k=0;k<2;k++){block(g,.43,.7,.03,glass,-3+k*.6,1.5,1.19);block(g,.03,.8,.05,'#c5d2c9',-3+k*.6,1.5,1.22)}for(let k=0;k<3;k++)block(g,.03,.85,.66,glass,-3.39,1.52,-.95+k*.8);}
+
  if(index===2){block(g,2.55,1.0,1.55,'#c2c5b5',.25,.75,-2.2);block(g,2.75,.1,1.7,'#718b83',.25,1.3,-2.2);for(let k=0;k<3;k++)block(g,.63,.61,.025,glass,-.55+k*.8,.8,-3.0);}
  if(index===4){for(let k=0;k<3;k++){block(g,.15,roof-.3,.2,'#c2c3b4',-1.4+k*1.35,(roof+.3)/2,d/2+.23);block(g,.35,.08,.5,'#d5d4bf',-1.4+k*1.35,1.1,d/2+.25)}}
 
@@ -75,6 +75,9 @@ export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,fl
  if(index===1){for(let k=0;k<6;k++)block(g,.075,roof-1.15,.20,'#c49a70',-.78+k*.28,(roof+1.15)/2,d/2+.18);softBlock(g,1.72,.08,.32,'#d7b389',-.08,roof+.05,d/2+.18)}
  if(index===4){for(const x of[-1.97,1.97]){softBlock(g,.25,roof-.28,.28,'#e2dfbd',x,(roof+.28)/2,d/2+.10);block(g,.045,roof-.4,.04,'#adc09d',x,roof/2,d/2+.26)}}
  if(index===0){softBlock(g,.64,roof-.5,.42,'#548e83',-2.0,(roof+.5)/2,1.50);for(let k=0;k<4;k++)block(g,.58,.055,.48,'#d6dec5',-2.0,1.15+k*1.02,1.50)}
+ // Rounded lecture pavilion and glazed study wing make the schools distinct at map scale.
+ if(index===4){const pavilion=new THREE.Group();for(const [r,h,y,c]of[[1.03,1.4,.98,'#d9d3ad'],[1.1,.14,1.74,'#567f78'],[1.18,.10,1.85,'#e7dfbd']]){const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,32),mat(c));o.position.y=y;o.castShadow=true;pavilion.add(o)}for(let k=0;k<12;k++){const a=k*Math.PI/6,x=Math.sin(a)*1.04,z=Math.cos(a)*1.04;const pane=block(pavilion,.38,.88,.045,glass,x,1.03,z);pane.rotation.y=a;const mullion=block(pavilion,.045,1.24,.07,'#eee2be',Math.sin(a+.25)*1.065,1.04,Math.cos(a+.25)*1.065);mullion.rotation.y=a+.25}pavilion.position.set(-2.6,0,.2);g.add(pavilion)}
+ if(index===0){const wing=new THREE.Group();block(wing,2.45,1.15,2.7,'#65998c',0,.85,0);block(wing,2.65,.14,2.9,'#e6dfbc',0,1.48,0);for(let k=0;k<4;k++){block(wing,.48,.82,.035,'#6c969b',-.88+k*.58,.94,1.37);block(wing,.045,1.04,.075,'#e6dfbc',-.88+k*.58,1.0,1.40)}const canopy=new THREE.Mesh(new THREE.SphereGeometry(1,20,10,0,Math.PI*2,0,Math.PI/2),mat('#86aaa0'));canopy.scale.set(1.22,.78,1.32);canopy.position.y=1.56;canopy.castShadow=true;wing.add(canopy);for(const side of[-1,1]){const arch=new THREE.Mesh(new THREE.TorusGeometry(1,.035,4,24,Math.PI),mat('#d5dfc3'));arch.scale.set(1.23,.78,1);arch.position.set(0,1.56,side*.70);wing.add(arch)}wing.position.set(-2.7,0,-.15);g.add(wing)}
  // Ground-floor lobby, canopy, layered steps, framed door and railings.
  block(g,1.35,.65,.07,glass,0,.68,d/2+.03);block(g,.065,.69,.09,'#c5d3ce',0,.68,d/2+.08)
  softBlock(g,1.85,.16,1.12,accent,0,1.04,d/2+.4);for(const s of[-1,1])block(g,.055,.77,.055,'#bcc9c3',s*.74,.65,d/2+.73)
