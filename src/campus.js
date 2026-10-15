@@ -20,9 +20,9 @@ export function bench(g,x,z,ry=0){const b=new THREE.Group();for(let i=0;i<3;i++)
 export function lamp(g,x,z){const t=new THREE.Group();block(t,.07,2,.07,'#70848b',0,1,0);block(t,.45,.055,.22,'#eaf0e9',.16,2.02,0);block(t,.34,.025,.16,'#ffffe5',.16,1.99,0);t.position.set(x,0,z);g.add(t)}
 export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,floors=[3,4,3,4,3][index],fh=1.02,accent=['#4e8578','#c28c57','#8a9c73','#4f8b91','#789c8d'][index],glass=['#437b89','#608694','#677f7b','#3c718b','#54868b'][index]
  block(g,5.35,.2,4.5,'#c6ceca',0,.12,0,.08);block(g,5.15,.1,4.3,'#eeeee6',0,.26,0)
- block(g,w,.8,d,'#e9e7dc',0,.68,0)
- for(let row=0;row<floors;row++){const start=g.children.length,y=1.1+row*fh;block(g,w,.91,d,['#dddcd1','#e2d6c6','#d1dbd6','#cbd7d7','#dbdfce'][index],0,y+.42,0)
-  softBlock(g,w+.17,.12,d+.18,accent,0,y+.94,0);softBlock(g,w+.29,.08,d+.30,'#e4e8de',0,y+1.005,0)
+ block(g,w,.8,d,'#efe0bd',0,.68,0)
+ for(let row=0;row<floors;row++){const start=g.children.length,y=1.1+row*fh;block(g,w,.91,d,['#e9d5ad','#e5c29a','#e2d8ae','#d6d9b4','#e8d6a8'][index],0,y+.42,0)
+  softBlock(g,w+.17,.12,d+.18,accent,0,y+.94,0);softBlock(g,w+.29,.08,d+.30,'#f2e5c9',0,y+1.005,0)
   // Windows recessed behind continuous frames. Side elevations have the same level of detail.
   for(let k=0;k<4;k++){const x=-1.55+k*1.035;block(g,.78,.64,.025,glass,x,y+.43,d/2+.019,.006);block(g,.81,.055,.13,'#a9bbb7',x,y+.1,d/2+.055);block(g,.035,.68,.045,'#c5d2c9',x,y+.43,d/2+.04,.009);if(index===0||index===3)block(g,.8,.035,.04,'#c5d2c9',x,y+.43,d/2+.04,.009)}
   // Pale reflected sky sits inside selected panes, not room-occupancy lights.
@@ -88,11 +88,11 @@ export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,fl
  // A low-poly depth shell keeps pedestrians behind the building without redrawing window detail.
  g.updateMatrixWorld(true);const shells=[];g.traverse(o=>{if(!o.isMesh||!o.material?.isMeshLambertMaterial)return;o.geometry.computeBoundingBox();const b=o.geometry.boundingBox,size=new THREE.Vector3();b.getSize(size);if(size.x<.3||size.y<.08||size.z<.3)return;const geo=new THREE.BoxGeometry(size.x,size.y,size.z),center=new THREE.Vector3();b.getCenter(center);geo.translate(center.x,center.y,center.z);geo.applyMatrix4(o.matrixWorld);shells.push(geo)});g.userData.depthGeometry=mergeGeometries(shells);shells.forEach(geo=>geo.dispose());g.userData.uni=u.id;return g}
 export function campusGround(g){
- block(g,26,.55,34,'#748f8c',0,-.3,0,.22);block(g,25.8,.10,33.8,'#b6d39b',0,.0,0,.2)
+ block(g,26,.55,34,'#748f8c',0,-.3,0,.22);block(g,25.8,.10,33.8,'#b9d87e',0,.0,0,.2)
  // Soft meadow colour and shallow planted rises break the flat model-board surface.
  const meadowGeo=new THREE.PlaneGeometry(25.35,33.35,40,52);meadowGeo.rotateX(-Math.PI/2);
  const meadowPos=meadowGeo.attributes.position,meadowColors=new Float32Array(meadowPos.count*3);
- const low=new THREE.Color('#b3c995'),high=new THREE.Color('#cad6a8');
+ const low=new THREE.Color('#a4c96f'),high=new THREE.Color('#d0df9b');
  for(let i=0;i<meadowPos.count;i++){const x=meadowPos.getX(i),z=meadowPos.getZ(i),blend=.46+.19*Math.sin(x*.31+z*.16)+.15*Math.cos(z*.35-x*.1),c=low.clone().lerp(high,blend);meadowColors.set([c.r,c.g,c.b],i*3)}
  meadowGeo.setAttribute('color',new THREE.BufferAttribute(meadowColors,3));const meadowMat=mat('#ffffff').clone();meadowMat.vertexColors=true;const meadow=new THREE.Mesh(meadowGeo,meadowMat);meadow.position.y=.056;meadow.receiveShadow=true;g.add(meadow);
  for(const [x,z,w,d]of[[-10,11,2.1,2.8],[-10,-11,2.1,2.4],[10,-11,1.7,2.8],[-3,-15,1.8,1.2],[3,15,1.9,1.2]]){const rise=new THREE.Mesh(new THREE.SphereGeometry(1,20,12),mat('#b4c99b'));rise.scale.set(w,.32,d);rise.position.set(x,-.11,z);rise.receiveShadow=true;g.add(rise)}
