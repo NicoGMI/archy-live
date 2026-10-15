@@ -35,7 +35,7 @@ export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,fl
   for(const s of[-1,1])for(let k=0;k<3;k++){const z=-1.05+k*1.05;block(g,.028,.63,.74,glass,s*(w/2+.015),y+.43,z);block(g,.08,.04,.8,'#c5d2c9',s*(w/2+.04),y+.1,z);block(g,.04,.65,.035,'#c5d2c9',s*(w/2+.04),y+.43,z)}
   // Coloured recessed strips, not a progress indicator.
   block(g,.13,.86,.12,accent,-w/2+.13,y+.43,d/2+.04)
-  if(row===floors-1&&(index===1||index===3)){const tier=new THREE.Group();for(const child of g.children.slice(start))tier.add(child);tier.scale.set(.86,1,.86);g.add(tier)}
+  if((row===floors-1&&(index===1||index===3))||(index===2&&row>=floors-2)){const tier=new THREE.Group();for(const child of g.children.slice(start))tier.add(child);const inset=index===2?(row===floors-1?.76:.9):.86;tier.scale.set(inset,1,inset);g.add(tier)}
  }
  // Different roof profiles retain a coherent campus family.
  const roof=1.1+floors*fh,roofStart=g.children.length;softBlock(g,w+.30,.16,d+.30,'#587878',0,roof,0)
@@ -53,7 +53,7 @@ export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,fl
  block(g,.9,.45,.7,'#c1ceca',.75,roof+.27,-.55);for(let i=0;i<5;i++)block(g,.73,.025,.035,'#849995',.75,roof+.2+i*.067,-.195)
  block(g,1.55,.1,.85,'#648491',-.85,roof+.14,-.3).rotation.x=-.13
  for(let i=0;i<3;i++)ball(g,.24,'#79ad85',-1.3+i*.42,roof+.33,1.08)
- if(index===1||index===3){const cap=new THREE.Group();for(const child of g.children.slice(roofStart))cap.add(child);cap.scale.set(.86,1,.86);g.add(cap)}
+ if(index===1||index===2||index===3){const cap=new THREE.Group();for(const child of g.children.slice(roofStart))cap.add(child);const inset=index===2?.76:.86;cap.scale.set(inset,1,inset);g.add(cap)}
  // Distinct secondary volumes create silhouettes, while keeping the campus palette.
  if(index===0){block(g,1.35,2.25,2.65,'#9db5ab',-2.7,1.37,-.15);block(g,1.5,.13,2.8,'#587878',-2.7,2.55,-.15);for(let k=0;k<2;k++){block(g,.43,.7,.03,glass,-3+k*.6,1.5,1.19);block(g,.03,.8,.05,'#c5d2c9',-3+k*.6,1.5,1.22)}for(let k=0;k<3;k++)block(g,.03,.85,.66,glass,-3.39,1.52,-.95+k*.8);}
  if(index===2){block(g,2.55,1.0,1.55,'#c2c5b5',.25,.75,-2.2);block(g,2.75,.1,1.7,'#718b83',.25,1.3,-2.2);for(let k=0;k<3;k++)block(g,.63,.61,.025,glass,-.55+k*.8,.8,-3.0);}
