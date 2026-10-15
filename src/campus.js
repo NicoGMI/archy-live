@@ -108,6 +108,15 @@ export function campusGround(g){
  bench(g,-2.8,-6.1,Math.PI/2);bench(g,-.4,-6.1,-Math.PI/2);planter(g,-1.6,-7.7,1.7);
  for(const [x,z]of[[-7,3.4],[7,-5.5]]){block(g,.3,.5,.3,'#628b7e',x,.28,z);block(g,.35,.07,.35,'#9aafa1',x,.57,z)}
  for(let k=0;k<3;k++){tree(g,-11, -3+k*1.5,.75);ball(g,.15,'#d7b98c',-10.2,.29,-3+k*1.5)}
+ // Shared reading tables and canvas shade are decorative, never work counters.
+ const reading=new THREE.Group();
+ const table=new THREE.Mesh(new THREE.CylinderGeometry(.52,.52,.10,24),mat('#cfb695'));table.position.y=.76;table.castShadow=true;reading.add(table);
+ const stem=new THREE.Mesh(new THREE.CylinderGeometry(.065,.09,.65,8),mat('#6b8580'));stem.position.y=.4;reading.add(stem);
+ for(const sd of[-1,1]){softBlock(reading,.48,.09,.48,'#b79a77',sd*.84,.46,0,.025);softBlock(reading,.48,.40,.07,'#c4ab8c',sd*.84,.66,-.24,.02);for(const dz of[-.16,.16])block(reading,.045,.44,.045,'#718780',sd*.84,.22,dz)}
+ const pole=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,2.25,8),mat('#b79a78'));pole.position.set(0,1.14,.1);reading.add(pole);
+ const canopyGeo=new THREE.ConeGeometry(1.17,.43,12,1,true);canopyGeo.clearGroups();for(let k=0;k<12;k++)canopyGeo.addGroup(k*3,3,k%2);const canopy=new THREE.Mesh(canopyGeo,[new THREE.MeshLambertMaterial({color:'#d9cba9',side:THREE.DoubleSide}),new THREE.MeshLambertMaterial({color:'#e7dfc8',side:THREE.DoubleSide})]);canopy.position.set(0,2.18,.1);canopy.castShadow=true;reading.add(canopy);
+ const rib=new THREE.Mesh(new THREE.TorusGeometry(1.17,.028,4,24),mat('#bba989'));rib.rotation.x=Math.PI/2;rib.position.set(0,1.965,.1);reading.add(rib);
+ reading.position.set(-1.6,.14,-6.2);g.add(reading);
  // Campus marker and public noticeboard are place identity, not live-task signals.
  block(g,.8,1.25,.38,'#bcc7ba',6,.72,12.4);block(g,.88,.11,.43,'#849f98',6,1.4,12.4);block(g,.58,.46,.045,'#365e61',6,.95,12.61);
  for(const x of[-1.5,-.2,1.1]){block(g,1,.13,1.3,'#92a88c',x,.16,13);block(g,.85,.04,1.15,'#a2bb96',x,.255,13);for(let k=0;k<3;k++)ball(g,.11,['#d9b488','#b8a3ae','#d6c5a0'][k],x-.2+k*.2,.39,13)}
