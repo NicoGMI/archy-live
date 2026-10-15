@@ -18,7 +18,23 @@ function garden(g,x,z,w,d){const ring=new THREE.Mesh(new THREE.CylinderGeometry(
 export function planter(g,x,z,w=1.1){block(g,w,.34,.65,'#dedbd3',x,.23,z,.075);block(g,w-.12,.08,.52,'#6f8056',x,.41,z);for(let i=0;i<3;i++)ball(g,.19,'#71a585',x-w*.3+i*w*.3,.53,z)}
 export function bench(g,x,z,ry=0){const b=new THREE.Group();for(let i=0;i<3;i++)block(b,1.3,.065,.12,'#b99b79',0,.46,i*.13-.13);block(b,1.3,.25,.07,'#b99b79',0,.69,-.24);for(const s of[-1,1]){block(b,.06,.44,.06,'#66777d',s*.48,.23,0);block(b,.06,.65,.06,'#66777d',s*.48,.35,-.21)}b.position.set(x,0,z);b.rotation.y=ry;g.add(b)}
 export function lamp(g,x,z){const t=new THREE.Group();block(t,.07,2,.07,'#70848b',0,1,0);block(t,.45,.055,.22,'#eaf0e9',.16,2.02,0);block(t,.34,.025,.16,'#ffffe5',.16,1.99,0);t.position.set(x,0,z);g.add(t)}
-export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,floors=[3,4,3,4,3][index],fh=1.02,accent=['#4e8578','#c28c57','#8a9c73','#4f8b91','#789c8d'][index],glass=['#437b89','#608694','#677f7b','#3c718b','#54868b'][index]
+// A round learning pavilion anchors the north-east campus without copying the other blocks.
+function roundCampus(u){const g=new THREE.Group(),cream='#e6d8b6',green='#638e7d',glass='#568b91';
+ const drum=(r,h,y,c)=>{const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,48),mat(c));o.position.y=y;o.castShadow=true;o.receiveShadow=true;g.add(o);return o};
+ drum(2.6,.18,.15,'#c5cbb7');drum(2.49,.10,.29,'#eee4c9');drum(2.15,.62,.64,cream);
+ for(let row=0;row<3;row++){const y=1.0+row*1.1;drum(2.12,.96,y+.48,cream);drum(2.25,.12,y+1.0,green);drum(2.33,.07,y+1.08,'#f2e6c8');
+ for(let k=0;k<20;k++){const a=k*Math.PI/10,x=Math.sin(a),z=Math.cos(a);const pane=block(g,.50,.72,.055,glass,x*2.135,y+.48,z*2.135);pane.rotation.y=a;const post=block(g,.075,.88,.085,'#ede2c2',Math.sin(a+.157)*2.16,y+.48,Math.cos(a+.157)*2.16);post.rotation.y=a+.157;const sill=block(g,.52,.05,.12,'#a6bfae',x*2.16,y+.10,z*2.16);sill.rotation.y=a;}}
+ drum(2.32,.15,4.39,green);drum(2.17,.07,4.5,'#9eaf8a');
+ for(let k=0;k<24;k++){const a=k*Math.PI/12,x=Math.sin(a),z=Math.cos(a);block(g,.035,.35,.035,'#d5ddc2',x*2.22,4.72,z*2.22);const rail=block(g,.59,.045,.045,'#e9e5cb',x*2.23,4.91,z*2.23);rail.rotation.y=a;}
+ const roof=new THREE.Mesh(new THREE.SphereGeometry(1,24,10,0,Math.PI*2,0,Math.PI/2),mat('#81a598'));roof.scale.set(1.0,.38,1.0);roof.position.set(0,4.58,0);roof.castShadow=true;g.add(roof);
+ for(const a of[-1.1,0,1.1]){const x=Math.sin(a)*1.72,z=Math.cos(a)*1.72;planter(g,x,z,.70);const pl=g.children.slice(-5);for(const o of pl)o.position.y+=4.31;}
+ // Low studio wing and sheltered lobby keep the tower connected to its garden.
+ block(g,1.9,1.25,2.5,'#d7cdab',-2.35,.92,-.2);softBlock(g,2.1,.14,2.7,'#729583',-2.35,1.63,-.2);for(let k=0;k<3;k++)block(g,.47,.84,.035,glass,-3.0+k*.60,.99,1.07);
+ block(g,1.30,.77,.08,glass,0,.75,2.10);block(g,.06,.80,.12,'#e4dec0',0,.75,2.17);softBlock(g,2,.15,1.2,green,0,1.25,2.4);for(const x of[-.82,.82])block(g,.07,.94,.07,'#c6cbaa',x,.72,2.8);
+ block(g,2.1,.13,1.05,'#ddd7bb',0,.24,2.55);block(g,2.4,.10,.65,'#c8cfb7',0,.12,3.0);const brand=logoBoard(u.id,1.35,.39);if(brand){brand.position.set(0,1.61,2.20);g.add(brand)}planter(g,-1.65,2.0,.75);planter(g,1.65,2.0,.75);
+ return finishCampus(g,u.id)}
+function finishCampus(g,id){g.updateMatrixWorld(true);const shells=[];g.traverse(o=>{if(!o.isMesh||!o.material?.isMeshLambertMaterial)return;o.geometry.computeBoundingBox();const b=o.geometry.boundingBox,size=new THREE.Vector3();b.getSize(size);if(size.x<.3||size.y<.08||size.z<.3)return;const geo=new THREE.BoxGeometry(size.x,size.y,size.z),center=new THREE.Vector3();b.getCenter(center);geo.translate(center.x,center.y,center.z);geo.applyMatrix4(o.matrixWorld);shells.push(geo)});g.userData.depthGeometry=mergeGeometries(shells);shells.forEach(geo=>geo.dispose());g.userData.uni=id;return g}
+export function campusBuilding(u,index){if(index===4)return roundCampus(u);const g=new THREE.Group(),w=4.4,d=3.3,floors=[3,4,3,4,3][index],fh=1.02,accent=['#4e8578','#c28c57','#8a9c73','#4f8b91','#789c8d'][index],glass=['#437b89','#608694','#677f7b','#3c718b','#54868b'][index]
  block(g,5.35,.2,4.5,'#c6ceca',0,.12,0,.08);block(g,5.15,.1,4.3,'#eeeee6',0,.26,0)
  block(g,w,.8,d,'#efe0bd',0,.68,0)
  for(let row=0;row<floors;row++){const start=g.children.length,y=1.1+row*fh;block(g,w,.91,d,['#e9d5ad','#e5c29a','#e2d8ae','#d6d9b4','#e8d6a8'][index],0,y+.42,0)
@@ -89,7 +105,7 @@ export function campusBuilding(u,index){const g=new THREE.Group(),w=4.4,d=3.3,fl
  // A distinct side stair landing gives each campus block a human scale.
  if(index===0||index===2){block(g,1.0,.12,1.4,'#c6cebf',-2.65,.3,0);for(let i=0;i<5;i++)block(g,.7,.075,.12,'#c5d7d0',-2.65,.7+i*.06,-.7);for(const z of[-.7,.7]){block(g,.06,.7,.06,'#7c9996',-3.06,.61,z);block(g,.055,.055,1.4,'#7c9996',-3.06,.96,0)}}
  // A low-poly depth shell keeps pedestrians behind the building without redrawing window detail.
- g.updateMatrixWorld(true);const shells=[];g.traverse(o=>{if(!o.isMesh||!o.material?.isMeshLambertMaterial)return;o.geometry.computeBoundingBox();const b=o.geometry.boundingBox,size=new THREE.Vector3();b.getSize(size);if(size.x<.3||size.y<.08||size.z<.3)return;const geo=new THREE.BoxGeometry(size.x,size.y,size.z),center=new THREE.Vector3();b.getCenter(center);geo.translate(center.x,center.y,center.z);geo.applyMatrix4(o.matrixWorld);shells.push(geo)});g.userData.depthGeometry=mergeGeometries(shells);shells.forEach(geo=>geo.dispose());g.userData.uni=u.id;return g}
+ return finishCampus(g,u.id)}
 export function campusGround(g){
  const island=(w,d,h,y,color)=>{const radius=2.2,shape=new THREE.Shape(),x=w/2,z=d/2;shape.moveTo(-x+radius,-z);shape.lineTo(x-radius,-z);shape.quadraticCurveTo(x,-z,x,-z+radius);shape.lineTo(x,z-radius);shape.quadraticCurveTo(x,z,x-radius,z);shape.lineTo(-x+radius,z);shape.quadraticCurveTo(-x,z,-x,z-radius);shape.lineTo(-x,-z+radius);shape.quadraticCurveTo(-x,-z,-x+radius,-z);const geo=new THREE.ExtrudeGeometry(shape,{depth:h,bevelEnabled:true,bevelThickness:.06,bevelSize:.06,bevelSegments:2,curveSegments:10,steps:1});geo.rotateX(-Math.PI/2);const mesh=new THREE.Mesh(geo,mat(color));mesh.position.y=y;mesh.receiveShadow=true;g.add(mesh)};island(25.9,33.9,.43,-.54,'#8ba078');island(25.65,33.65,.08,-.045,'#b9d87e');
  // Soft meadow colour and shallow planted rises break the flat model-board surface.
