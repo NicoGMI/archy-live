@@ -163,7 +163,7 @@ export function campusGround(g){
  for(const x of[-1.5,-.2,1.1]){block(g,1,.13,1.3,'#92a88c',x,.16,13);block(g,.85,.04,1.15,'#a2bb96',x,.255,13);for(let k=0;k<3;k++)ball(g,.11,['#d9b488','#b8a3ae','#d6c5a0'][k],x-.2+k*.2,.39,13)}
  // Connected planting beds frame the pedestrian campus, with distinct quiet spaces.
  for(const [x,z,w,d]of[[-9,-10,4,7],[-9,11,4,6],[-4,-14,4,2],[3,14,4,2]]){garden(g,x,z,w,d);for(let i=0;i<5;i++){const xx=x+(i%3-1)*w*.28,zz=z+(Math.floor(i/3)-.5)*d*.55;ball(g,.26,['#6b9273','#8aaa80','#a0b68b'][i%3],xx,.31,zz)}}
- for(const [x,z,s]of[[-10,-9,1.3],[-8,-11,1.2],[-10,12,1.2],[-8,10,1.15],[9,-13,1.25],[11,-5,1.15],[-3,-15,1.1],[2,15,1.15]])tree(g,x,z,s);
+ for(const [x,z,s]of[[-10,-9,1.3],[-8,-11,1.2],[-10,12,1.2],[-8,10,1.15],[7.7,-14.4,1.1],[11,-5,1.15],[-3,-15,1.1],[2,15,1.15]])tree(g,x,z,s);
  for(const [x,z,ry]of[[-8.5,-8,.4],[-7,11,-.2],[6.8,-11,Math.PI/2]])bench(g,x,z,ry);
 
  for(const [x,z]of[[-10,10],[-8,-10],[11,-6],[-2,14],[5,14]]){for(let k=0;k<5;k++){const xx=x+(k-2)*.25;block(g,.025,.18,.025,'#789267',xx,.23,z);const flower=ball(g,.075,['#efc886','#d4a0aa','#f0ddac'][k%3],xx,.34,z);flower.scale.y=.6;}}
@@ -217,6 +217,12 @@ export function campusGround(g){
  commons.position.set(-.7,0,3.8);g.add(commons);
  // Low, rounded hedge islands give the north garden a stronger foreground/background layering.
  for(const [x,z,ry]of[[6.7,-13.2,.5],[-7.8,14.2,-.2],[-11.2,-6.5,.3]]){const bed=new THREE.Group();for(let k=0;k<6;k++){const shrub=ball(bed,.32+(k%2)*.07,['#6d996a','#8bad76','#9fba7e'][k%3],-.9+k*.35,.32,Math.sin(k)*.10);shrub.scale.set(1,.83,1);if(k%2===0)ball(bed,.08,'#e6c491',-.9+k*.35,.58,.05)}bed.position.set(x,.08,z);bed.rotation.y=ry;g.add(bed)}
+ // A small open-air teaching shelter gives the pond garden a clear architectural focal point.
+ const shelter=new THREE.Group();const sy=1.8;for(const x of[-.86,.86])for(const z of[-.70,.70]){block(shelter,.085,sy,.085,'#b5966d',x,sy/2+.12,z);softBlock(shelter,.20,.10,.20,'#d6d2b0',x,.14,z,.02)}
+ softBlock(shelter,2.35,.12,2.05,'#dfd3ab',0,sy+.17,0,.05);const roofGeo=new THREE.ConeGeometry(1.55,.70,4);roofGeo.rotateY(Math.PI/4);const canopyRoof=new THREE.Mesh(roofGeo,mat('#78977b'));canopyRoof.scale.z=.88;canopyRoof.position.y=sy+.56;canopyRoof.castShadow=true;shelter.add(canopyRoof);softBlock(shelter,2.6,.10,2.23,'#d5c59f',0,sy+.23,0,.03);softBlock(shelter,2.15,.10,1.85,'#cfc8a5',0,.11,0,.05);
+ bench(shelter,0,.48);shelter.position.set(9.7,.04,-13.5);shelter.rotation.y=-.18;g.add(shelter);
+ // A restrained warm border highlights the layered park foundation, without changing the biome.
+ const edging=new THREE.Group();for(const [x,z,w,d]of[[-9.1,16.25,3.4,.16],[-4.5,16.25,3.4,.16],[.1,16.25,3.4,.16],[4.7,16.25,3.4,.16]])softBlock(edging,w,.10,d,'#b8bb8b',x,-.08,z,.025);g.add(edging);
  // Granite paving has subtle joints instead of noisy procedural textures.
  for(let k=0;k<6;k++)block(g,.014,.009,1.7,'#7e9591',7.5+k*.3,.195,10);
  return {water}
