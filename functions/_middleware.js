@@ -16,7 +16,14 @@ export async function onRequest({ request, env, next }) {
   if (!pw) return new Response('Configuration manquante', { status: 503, headers: { 'cache-control': 'no-store' } })
   const token = await sha('archy-live-v1|' + pw)
   const m = (request.headers.get('cookie') || '').match(new RegExp('(?:^|; )' + COOKIE + '=([0-9a-f]+)'))
-  if (m && safeEq(m[1], token)) { const r = await next(); const h = new Response(r.body, r); h.headers.set('cache-control', 'no-store'); h.headers.set('x-robots-tag', 'noindex'); return h }
+  if (m && safeEq(m[1], token)) {
+    // An already-open password form can be submitted after another tab signed in.
+    // Never forward its POST to Pages static assets, which answer 405.
+    if (request.method === 'POST' && new URL(request.url).pathname === '/') {
+      const u = new URL(request.url)
+      return new Response(null, { status: 303, headers: { location: '/' + u.search, 'cache-control': 'no-store' } })
+    }
+    const r = await next(); const h = new Response(r.body, r); h.headers.set('cache-control', 'no-store'); h.headers.set('x-robots-tag', 'noindex'); return h }
   if (request.method === 'POST') {
     const f = await request.formData().catch(() => null)
     await new Promise((r) => setTimeout(r, 800))
