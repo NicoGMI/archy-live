@@ -9,9 +9,9 @@ export function block(g,w,h,d,c,x,y,z,r=.045){const o=new THREE.Mesh((w*h*d>5&&M
 const ball=(g,r,c,x,y,z)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(r,12,8),mat(c));o.position.set(x,y,z);o.castShadow=true;g.add(o);return o}
 export function tree(g,x,z,s=1){const t=new THREE.Group(),v=Math.abs(Math.round(x*13+z*7))%3;const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.075,.13,1.15,7),mat('#b89a70'));trunk.position.y=.57;trunk.castShadow=true;t.add(trunk);
  const palettes=[['#448958','#71a95d','#a2c46d'],['#4d8c5c','#80b269','#b1cb7c'],['#518e58','#78aa61','#acd17b']],c=palettes[v];
- if(v===0){ball(t,.66,c[0],-.18,1.35,0).scale.set(1,1.15,.95);ball(t,.53,c[1],.25,1.54,.04);ball(t,.29,c[2],.17,1.82,.07)}
- else if(v===1){ball(t,.69,c[0],0,1.55,0).scale.set(.92,1.22,.88);ball(t,.35,c[1],-.23,1.57,.06);ball(t,.29,c[2],.17,1.88,.06)}
- else{ball(t,.67,c[0],0,1.35,0).scale.set(1.08,.92,1.02);ball(t,.38,c[1],.27,1.53,0);ball(t,.27,c[2],-.13,1.7,.13)}
+ // One sculpted crown with a baked vertical colour wash, not intersecting colour balls.
+ const geo=new THREE.SphereGeometry(1,16,12),pos=geo.attributes.position,colors=new Float32Array(pos.count*3),dark=new THREE.Color(c[0]),light=new THREE.Color(c[1]);
+ for(let i=0;i<pos.count;i++){const y=pos.getY(i),x=pos.getX(i),z=pos.getZ(i),wave=1+.045*Math.sin(x*7+z*4)*Math.sin(y*6);pos.setXYZ(i,x*wave,y,z*wave);const color=dark.clone().lerp(light,Math.max(0,Math.min(1,(y+.8)*.38+x*.10+z*.06)));colors.set([color.r,color.g,color.b],i*3)}geo.setAttribute('color',new THREE.BufferAttribute(colors,3));geo.computeVertexNormals();const crownMat=mat('#ffffff').clone();crownMat.vertexColors=true;const crown=new THREE.Mesh(geo,crownMat);crown.position.y=1.6;crown.scale.set(v===1?.68:.78,v===1?.94:.78,v===2?.67:.72);crown.castShadow=true;t.add(crown);
  const branch=new THREE.Mesh(new THREE.CylinderGeometry(.035,.045,.5,5),mat('#b89a70'));branch.position.set(.1,.97,0);branch.rotation.z=-.55;t.add(branch);t.position.set(x,.06,z);t.scale.setScalar(s);g.add(t)}
 function softBlock(g,w,h,d,c,x,y,z,r=.07){const o=new THREE.Mesh(bevelBox(w,h,d,Math.min(r,h*.28)),mat(c));o.position.set(x,y,z);o.castShadow=true;g.add(o);return o}
 function garden(g,x,z,w,d){const ring=new THREE.Mesh(new THREE.CylinderGeometry(1,1,.07,24),mat('#b7c4a3'));ring.scale.set(w/2,1,d/2);ring.position.set(x,.085,z);g.add(ring);const soil=new THREE.Mesh(new THREE.CircleGeometry(1,24),mat('#86ac80'));soil.rotation.x=-Math.PI/2;soil.scale.set((w-.13)/2,(d-.13)/2,1);soil.position.set(x,.125,z);g.add(soil)}
