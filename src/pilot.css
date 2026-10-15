@@ -16,3 +16,6 @@
 .pilot-scene-task{position:absolute;width:205px;background:#fffef8f5;border:1px solid #d6e1d3;border-radius:12px;box-shadow:0 8px 24px #45644e22;padding:12px 14px;text-align:left;color:#40544a;cursor:pointer}.pilot-scene-task:before{content:"";position:absolute;left:-31px;top:18px;width:30px;height:1px;background:#6d8c77}.pilot-scene-task span{display:block;font-size:9px;color:#72876e;margin-bottom:5px}.pilot-scene-task strong{display:block;font-size:12px;line-height:1.5}.pilot-scene-task small{display:block;font-size:9px;color:#718578;margin-top:7px}@media(max-width:900px){.pilot-scene-task{display:none}}
 
 .pilot-root button:focus-visible,.pilot-root a:focus-visible{outline:2px solid #5d907d;outline-offset:3px}.pilot-sheet h2{padding-right:38px}
+
+/* Compact live-task chip leaves the garden visible; the complete title stays in the rail and task sheet. */
+.pilot-scene-task{width:168px;padding:8px 11px;border-radius:10px}.pilot-scene-task span{font-size:8px;margin-bottom:3px}.pilot-scene-task strong{font-size:10px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pilot-scene-task:before{top:15px}

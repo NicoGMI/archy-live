@@ -70,6 +70,12 @@ export function campusBuilding(u,index){if(index===4)return roundCampus(u);const
  block(g,1.55,.1,.85,'#648491',-.85,roof+.14,-.3).rotation.x=-.13
  for(let i=0;i<3;i++)ball(g,.24,'#79ad85',-1.3+i*.42,roof+.33,1.08)
  if(index===1||index===2||index===3){const cap=new THREE.Group();for(const child of g.children.slice(roofStart))cap.add(child);const inset=index===2?.76:.86;cap.scale.set(inset,1,inset);g.add(cap)}
+ // Excelia has a warm copper hipped roof, instead of another identical flat terrace.
+ if(index===1){for(const child of g.children.slice(roofStart)){child.removeFromParent();child.traverse(o=>{if(o.isMesh)o.geometry.dispose()})}
+ const y=roof+.11,rx=2.17,rz=1.67,ridge=.68,verts=[-rx,y,-rz,rx,y,-rz,ridge,y+.72,0,-ridge,y+.72,0, -rx,y,rz,-ridge,y+.72,0,ridge,y+.72,0,rx,y,rz, -rx,y,-rz,-ridge,y+.72,0,-rx,y,rz, rx,y,-rz,rx,y,rz,ridge,y+.72,0],idx=[0,1,2,0,2,3,4,5,6,4,6,7,8,9,10,11,12,13];
+ const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));geo.setAttribute('uv',new THREE.Float32BufferAttribute(new Float32Array(28),2));geo.setIndex(idx.flatMap((v,i)=>i%3===0?[idx[i],idx[i+2],idx[i+1]]:[]));geo.computeVertexNormals();const m=mat('#b98152');const hip=new THREE.Mesh(geo,m);hip.castShadow=true;g.add(hip);softBlock(g,4.48,.13,3.47,'#dec69a',0,y-.03,0);block(g,1.45,.10,.13,'#d8ad7c',0,y+.76,0);
+ for(const side of[-1,1]){const dormer=new THREE.Group();block(dormer,.9,.42,.6,'#d9c296',0,0,0);block(dormer,.64,.28,.035,glass,0,0,.32);softBlock(dormer,1.03,.08,.71,'#78907d',0,.25,0);dormer.position.set(side*.95,y+.35,.82);g.add(dormer)}
+ }
  // Distinct secondary volumes create silhouettes, while keeping the campus palette.
 
  if(index===2){block(g,2.55,1.0,1.55,'#c2c5b5',.25,.75,-2.2);block(g,2.75,.1,1.7,'#718b83',.25,1.3,-2.2);for(let k=0;k<3;k++)block(g,.63,.61,.025,glass,-.55+k*.8,.8,-3.0);}
