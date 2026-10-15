@@ -8,10 +8,10 @@ function bevelBox(w,h,d,r){w-=r*2;d-=r*2;const shape=new THREE.Shape();shape.mov
 export function block(g,w,h,d,c,x,y,z,r=.045){const o=new THREE.Mesh((w*h*d>5&&Math.min(w,h,d)>.18?bevelBox(w,h,d,Math.min(r,w/4,h/4,d/4)):new THREE.BoxGeometry(w,h,d)),mat(c));o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;g.add(o);return o}
 const ball=(g,r,c,x,y,z)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(r,12,8),mat(c));o.position.set(x,y,z);o.castShadow=true;g.add(o);return o}
 export function tree(g,x,z,s=1){const t=new THREE.Group(),v=Math.abs(Math.round(x*13+z*7))%3;const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.075,.13,1.15,7),mat('#b89a70'));trunk.position.y=.57;trunk.castShadow=true;t.add(trunk);
- const palettes=[['#3f8b56','#75b96c','#abd57e'],['#468e58','#8ac477','#b8db88'],['#408956','#72b66a','#b0d785']],c=palettes[v];
+ const palettes=[['#3f8b56','#75b96c','#abd57e'],['#468e58','#8ac477','#b8db88'],['#408956','#72b66a','#b0d785']],c=(x<-7&&z>7)?[['#6b9856','#a5bb65','#cbd589'],['#618d4f','#97b45e','#c4d784'],['#739550','#b3bd6a','#d4d18c']][v]:palettes[v];
  // One sculpted crown with a baked vertical colour wash, not intersecting colour balls.
- const geo=new THREE.SphereGeometry(1,16,12),pos=geo.attributes.position,colors=new Float32Array(pos.count*3),dark=new THREE.Color(c[0]),light=new THREE.Color(c[1]);
- for(let i=0;i<pos.count;i++){const y=pos.getY(i),x=pos.getX(i),z=pos.getZ(i),wave=1+.045*Math.sin(x*7+z*4)*Math.sin(y*6);pos.setXYZ(i,x*wave,y,z*wave);const color=dark.clone().lerp(light,Math.max(0,Math.min(1,(y+.8)*.38+x*.10+z*.06)));colors.set([color.r,color.g,color.b],i*3)}geo.setAttribute('color',new THREE.BufferAttribute(colors,3));geo.computeVertexNormals();const crownMat=mat('#ffffff').clone();crownMat.vertexColors=true;const crown=new THREE.Mesh(geo,crownMat);crown.position.y=1.6;crown.scale.set(v===1?.68:.78,v===1?.94:.78,v===2?.67:.72);crown.castShadow=true;t.add(crown);
+ const geo=new THREE.SphereGeometry(1,20,16),pos=geo.attributes.position,colors=new Float32Array(pos.count*3),dark=new THREE.Color(c[0]),light=new THREE.Color(c[1]);
+ for(let i=0;i<pos.count;i++){const y=pos.getY(i),x=pos.getX(i),z=pos.getZ(i),wave=1+.065*Math.sin(x*7+z*4)*Math.sin(y*6);pos.setXYZ(i,x*wave,y,z*wave);const color=dark.clone().lerp(light,Math.max(0,Math.min(1,(y+.8)*.38+x*.10+z*.06)));colors.set([color.r,color.g,color.b],i*3)}geo.setAttribute('color',new THREE.BufferAttribute(colors,3));geo.computeVertexNormals();const crownMat=mat('#ffffff').clone();crownMat.vertexColors=true;const crown=new THREE.Mesh(geo,crownMat);crown.position.y=1.6;crown.scale.set(v===1?.72:.86,v===1?1.02:.82,v===2?.74:.80);crown.castShadow=true;t.add(crown);
  const branch=new THREE.Mesh(new THREE.CylinderGeometry(.035,.045,.5,5),mat('#b89a70'));branch.position.set(.1,.97,0);branch.rotation.z=-.55;t.add(branch);t.position.set(x,.06,z);t.scale.setScalar(s);g.add(t)}
 function softBlock(g,w,h,d,c,x,y,z,r=.07){const o=new THREE.Mesh(bevelBox(w,h,d,Math.min(r,h*.28)),mat(c));o.position.set(x,y,z);o.castShadow=true;g.add(o);return o}
 function garden(g,x,z,w,d){const ring=new THREE.Mesh(new THREE.CylinderGeometry(1,1,.07,24),mat('#b7c4a3'));ring.scale.set(w/2,1,d/2);ring.position.set(x,.085,z);g.add(ring);const soil=new THREE.Mesh(new THREE.CircleGeometry(1,24),mat('#86ac80'));soil.rotation.x=-Math.PI/2;soil.scale.set((w-.13)/2,(d-.13)/2,1);soil.position.set(x,.125,z);g.add(soil)}
@@ -226,6 +226,12 @@ export function campusGround(g){
  // A curved line of stepping stones and reeds links the pond deck to the sheltered reading corner.
  for(let k=0;k<8;k++){const t=k/7,x=6.8+.55*Math.sin(t*Math.PI),z=-10.2-t*3.5;const stone=softBlock(g,.45,.045,.32,'#d9d1ae',x,.16,z,.035);stone.rotation.y=.25*Math.sin(k);}
  for(const [x,z]of[[10.7,-11.4],[7.5,-7.3],[10.8,-7.2]]){for(let k=0;k<5;k++){const leaf=block(g,.045,.40+(k%3)*.11,.035,['#6f9b6c','#96b173','#a7bd82'][k%3],x+(k-2)*.09,.34,z+.11*Math.cos(k));leaf.rotation.z=(k-2)*.14;}const stone=ball(g,.17,'#b1b79c',x+.3,.15,z+.12);stone.scale.y=.6;}
+ // Limestone garden walls and rounded piers give the approach a human scale.
+ const wall=new THREE.Group();for(const [x,z,w,d]of[[-7.5,15.5,3.6,.30],[-2.8,15.5,3.2,.30],[1.6,15.5,3.2,.30],[9.1,13.8,.30,2.0]]){
+ softBlock(wall,w,.42,d,'#d7d1ac',x,.32,z,.06);softBlock(wall,w+.10,.09,d+.12,'#eee2be',x,.58,z,.035);
+ const alongX=w>d;for(const sign of[-1,1]){const xx=x+(alongX?sign*w/2:0),zz=z+(alongX?0:sign*d/2);softBlock(wall,.46,.66,.46,'#c8c8a5',xx,.40,zz,.05);softBlock(wall,.55,.10,.55,'#e6dbb8',xx,.76,zz,.035);const finial=ball(wall,.14,'#8fa378',xx,.89,zz);finial.scale.y=.85;}
+ }
+ g.add(wall);
  // Granite paving has subtle joints instead of noisy procedural textures.
  for(let k=0;k<6;k++)block(g,.014,.009,1.7,'#7e9591',7.5+k*.3,.195,10);
  return {water}

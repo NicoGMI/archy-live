@@ -19,3 +19,6 @@
 
 /* Compact live-task chip leaves the garden visible; the complete title stays in the rail and task sheet. */
 .pilot-scene-task{width:168px;padding:8px 11px;border-radius:10px}.pilot-scene-task span{font-size:8px;margin-bottom:3px}.pilot-scene-task strong{font-size:10px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pilot-scene-task:before{top:15px}
+
+/* Square app mark stays centred instead of clipping inside its padded rail link. */
+.pilot-rail a:first-child{width:44px;height:44px;padding:0;display:flex;align-items:center;justify-content:center;flex:none;line-height:1;border-radius:12px}.pilot-root{background:#f1f2e7}
