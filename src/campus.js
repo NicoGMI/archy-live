@@ -129,6 +129,19 @@ export function campusGround(g){
  // A garden-only limestone walk connects the reading grove without changing V21 streets.
  const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(-11,.14,12),new THREE.Vector3(-8.5,.14,8),new THREE.Vector3(-10,.14,4),new THREE.Vector3(-9.5,.14,0),new THREE.Vector3(-10,.14,-5),new THREE.Vector3(-8.5,.14,-10),new THREE.Vector3(-9,.14,-14)]);
  const pts=curve.getPoints(72),vertices=[],indices=[];pts.forEach((p,i)=>{const tangent=curve.getTangent(i/72),side=new THREE.Vector3(-tangent.z,0,tangent.x).multiplyScalar(.4);vertices.push(p.x+side.x,p.y,p.z+side.z,p.x-side.x,p.y,p.z-side.z);if(i<72){const k=i*2;indices.push(k,k+2,k+1,k+1,k+2,k+3)}});const walkGeo=new THREE.BufferGeometry();walkGeo.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));walkGeo.setAttribute('uv',new THREE.Float32BufferAttribute(new Float32Array(vertices.length/3*2),2));walkGeo.setIndex(indices);walkGeo.computeVertexNormals();g.add(new THREE.Mesh(walkGeo,mat('#c9cfb8')));
+ // Slender cypresses and clipped meadow borders frame the entrances as a garden campus.
+ for(const [x,z]of[[12,-3.4],[12,4.0],[-5.8,-13.8],[-5.8,13.8]]){
+ const cypress=new THREE.Group();const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.055,.09,1.1,7),mat('#b9ad91'));trunk.position.y=.55;cypress.add(trunk);
+ for(let j=0;j<3;j++){const crown=ball(cypress,.44-j*.09,['#467c66','#68977a','#89ad8b'][j],0,1.1+j*.55,0);crown.scale.set(.76,1.65,.76)}cypress.position.set(x,.08,z);g.add(cypress);
+ garden(g,x,z,1.25,1.25);for(let j=0;j<5;j++){const a=j*Math.PI*2/5;ball(g,.11,'#b4c8a0',x+Math.cos(a)*.45,.22,z+Math.sin(a)*.45)}
+ }
+ // Low limestone edging, grasses and stepping stones add depth to the west reading grove.
+ for(const [x,z,ry]of[[-10.8,7.8,-.2],[-8.2,-6.7,.3],[-9.8,-12.3,-.3]]){
+ const bed=new THREE.Group();softBlock(bed,1.8,.16,.65,'#d4d7c3',0,.14,0,.05);softBlock(bed,1.65,.06,.5,'#8d9c72',0,.25,0,.02);
+ for(let j=0;j<5;j++){const xx=-.62+j*.31;for(const side of[-1,1]){const leaf=block(bed,.045,.36,.035,['#819c71','#9eb183'][j%2],xx+side*.05,.43,0);leaf.rotation.z=side*.34}ball(bed,.09,['#dfc995','#c9a9b1','#e3d7b5'][j%3],xx,.61,0)}
+ bed.position.set(x,0,z);bed.rotation.y=ry;g.add(bed);
+ }
+ for(const [x,z,ry]of[[-8.9,5.5,.2],[-8.55,6.2,.1],[-8.3,6.9,-.1],[-9.3,-7.8,-.2],[-9.05,-8.5,.1]]){const stone=softBlock(g,.58,.045,.4,'#d5d8c5',x,.17,z,.04);stone.rotation.y=ry;}
  // Granite paving has subtle joints instead of noisy procedural textures.
  for(let k=0;k<6;k++)block(g,.014,.009,1.7,'#7e9591',7.5+k*.3,.195,10);
  return {water}
