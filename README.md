@@ -1,15 +1,44 @@
-# Archy Live - dashboard + carte de village en temps réel
+# Archy City - le village vivant de ton assistant
 
-Une app web statique (Vite + React + Three.js) qui montre l'activité d'un assistant ou d'une équipe :
-- **Carte** (vue par défaut) : un village, une maison par univers (projet, place fixe), un personnage qui marche = tâche en cours, un PNJ "..." = en attente, ✕ = bloqué, ⏱ = programmé, coche = terminé. Au centre, le bureau du boss : les personnages font des allers-retours maison <> bureau. Touche une maison ou un personnage pour le détail.
-- **Dashboard** (`#dash` ou bouton en haut à droite) : compteurs, avancement par univers, tâches à décider, journal horodaté.
+Une app web statique (Vite + React + PlayCanvas) qui montre l'activité d'un assistant ou d'une équipe :
+
+- **Village** (vue par défaut) : une île, une place centrale et le bureau du boss, une maison par univers avec sa silhouette propre. On comprend d'un coup d'œil ce qui avance, ce qui attend et ce qui bloque, on touche une maison ou un habitant pour le détail, et on peut s'y promener.
+- **Dashboard** (`#dash`) : la version sobre. Compteurs, à décider, en cours, programmé, journal.
 
 Les deux vues lisent les mêmes données, rafraîchies toutes les 20 s (en pause quand l'onglet est caché).
+
+## Lire le village
+
+Règle d'or : **chaque personnage est une vraie tâche, chaque animation dit quelque chose**. Il n'y a aucun figurant.
+
+| Statut | Dans le village |
+| --- | --- |
+| En cours | L'habitant fait la navette maison ⇄ bureau du boss, colis à la main. Il marche plus lentement si la tâche n'a pas de nouvelles depuis longtemps. La cheminée fume, la fenêtre est chaude. |
+| Attend le boss | Il fait la queue devant le perron du bureau, un papier à la main. La file se voit de loin : c'est ta pile de décisions. |
+| Bloqué | Il reste devant sa porte, mains sur les hanches, derrière une barrière rouge, avec des braises sur la façade. |
+| Programmé | Il attend assis sur le banc de sa maison et se lève dans la dernière heure. |
+| En file | Pas d'habitant : une caisse de plus devant la maison. |
+| Terminé | Il rentre, fête ça sous les confettis et le feu d'artifice, puis un fanion s'ajoute au mât (doré pendant 24 h). |
+
+Et aussi :
+- **Archy**, le petit robot-lanterne, se tient là où il a agi en dernier d'après le journal.
+- **La lumière suit l'heure réelle** (fuseau de `src/config.js`) : la nuit, seules les maisons où quelque chose avance restent éclairées. Le bouton d'heure permet de forcer une ambiance.
+- **Les fenêtres sont des tâches**, colorées par statut. L'horloge de la mairie donne l'heure vraie, le dôme de NGMI tourne quand NGMI travaille.
+- Ce qui n'est pas une tâche relève de la nature : vent, marée, goélands, voilier, lucioles, le chat de la place.
+
+## Jouer
+
+- **Regarder** : un doigt ou le clic déplace le village, deux doigts ou le clic droit le font pivoter, la molette et le pincement zooment.
+- **Ouvrir une maison** : elle se déplie en maison de poupée, une pièce par type de travail.
+- **Se balader** : tu incarnes Nico (ZQSD, flèches, joystick, ou clic au sol). La **Tournée du boss** te guide vers les habitants bloqués ou en attente ; parle-leur pour lire ce qu'ils attendent, marquer une tâche importante ou demander son annulation. Rien n'est modifié tant que tu n'appuies pas sur ces actions.
+
+Laissé sans intervention, le village se regarde tout seul : la caméra dérive doucement et va voir les tâches qui se terminent ou se bloquent.
 
 ## Démarrer
 ```
 npm install
 cp public/data/archy-status.example.json public/data/archy-status.json   # tes données (ignorées par git)
+npm run demo-data  # ou : un village complet de démonstration, titres fictifs
 npm run dev        # http://localhost:5173
 npm test           # tests de la CLI
 npm run build      # produit dist/
@@ -17,8 +46,8 @@ npm run build      # produit dist/
 Le vrai fichier `public/data/archy-status.json` n'est jamais versionné (voir `.gitignore`) : seul l'exemple l'est.
 
 ## Les données : `public/data/archy-status.json`
-- `universes` : tes projets. `{ "id": "site", "name": "Mon Site", "emoji": "🌐", "color": "#f59e0b" }`. Une maison par univers qui a au moins une tâche. 8 places sur la carte, dans l'ordre de la liste (les suivants sont signalés par un badge "+N univers non affichés").
-- `tasks` : `{ "id", "universe", "title", "status", "note", "startedAt", "doneAt", "scheduledAt" }`. Statuts : `active`, `waiting`, `scheduled`, `blocked`, `queued`, `done`. Les 6 premières tâches (actives d'abord) ont une fenêtre sur leur maison.
+- `universes` : tes projets. `{ "id": "site", "name": "Mon Site", "emoji": "🌐", "color": "#f59e0b" }`. Les univers connus ont leur bâtiment dédié (`src/village/plan.js`) ; un nouvel univers qui a au moins une tâche s'installe dans un cottage à sa couleur, sur l'une des 8 parcelles libres (les suivants sont signalés et restent visibles dans le dashboard).
+- `tasks` : `{ "id", "universe", "title", "status", "note", "startedAt", "doneAt", "scheduledAt" }`. Statuts : `active`, `waiting`, `scheduled`, `blocked`, `queued`, `done`. Les tâches les plus urgentes occupent les fenêtres de façade.
 - `log` : `{ "at", "task", "text" }`. Le plus récent d'abord, 300 entrées max. Dates en ISO 8601 avec fuseau.
 
 ### CLI (écriture atomique, verrou, validation)
@@ -37,7 +66,9 @@ bin/archy help
 
 ### Personnaliser
 - Titre, fuseau horaire, langue, formulations ("Attend le boss"), rythme de rafraîchissement : `src/config.js`.
-- Ambiance de la carte (ciel, lumière, couleurs) : début de l'effet dans `src/MapView.jsx`.
+- Ambiances d'une journée (ciel, soleil, mer) : `src/village/daylight.js`.
+- Plan du village, parcelles, rues : `src/village/plan.js`. Silhouette des bâtiments : `src/village/buildings.js`.
+- Options d'URL utiles : `?hour=19` force une heure, `?quality=low|high` force le niveau graphique, `?debug` expose `window.__village`. Liens directs : `#u=<univers>` ouvre une maison, `#t=<tâche>` va voir un habitant.
 
 ## Héberger gratuitement sur Cloudflare Pages (optionnel)
 Tout est dans le plan gratuit. Ne saisis jamais de secret dans le dépôt.
@@ -57,11 +88,19 @@ Tout est dans le plan gratuit. Ne saisis jamais de secret dans le dépôt.
    - Délai : une mise à jour est visible en général sous 30 s (propagation KV jusqu'à ~1 min, plus le rafraîchissement de 20 s).
    - Sans KV, l'app lit simplement `/data/archy-status.json` (redéploiement nécessaire pour changer les données).
 
-## Village V17
+## Architecture du village
 
-Quartiers et positions libres, intérieurs en coupe et personnages chibi. Les maisons spécialisées ont des salles par type de travail, et une salle vide existe avant de recevoir sa première tâche.
+Tout est procédural : aucun modèle 3D ni image à charger, hormis les logos des écoles.
 
-Commandes supplémentaires :
+- `src/MapView.jsx` : l'interface React (HUD, panneaux, étiquettes, balade). Elle ne touche pas au moteur, seulement à son API.
+- `src/village/engine.js` : boucle de jeu, sélection, marche, entrées. Reçoit des intentions, émet des événements.
+- `src/village/sim.js` : traduit les tâches en comportements. Pur et testé (`test/village.test.mjs`), sans moteur.
+- `src/village/plan.js`, `terrain.js`, `ground.js`, `scenery.js`, `buildings.js`, `interior.js`, `characters.js`, `fx.js`, `camera.js`, `render.js`, `daylight.js`, `story.js`, `meshkit.js`.
+
+La vue `#pilot` (campus Three.js) reste un essai isolé ; `three` n'est chargé que pour elle.
+
+## Commandes de la CLI
+
 ```
 bin/archy universe <id> "Nom" <emoji> <couleur> [quartier]
 bin/archy move <tache> <maison>

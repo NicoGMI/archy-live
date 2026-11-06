@@ -1,6 +1,8 @@
 import React from 'react'
 import {createRoot} from 'react-dom/client'
 import Dashboard from './Dashboard.jsx'
+import '@fontsource-variable/fraunces'
+import '@fontsource-variable/nunito'
 import './pilot.css'
 // A deployment can replace a lazy chunk while an older tab is still open.
 addEventListener('vite:preloadError',event=>{const key='archy-preload-retry',last=Number(sessionStorage.getItem(key)||0);if(Date.now()-last>30000){event.preventDefault();sessionStorage.setItem(key,String(Date.now()));location.reload()}})
