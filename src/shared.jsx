@@ -3,7 +3,7 @@ import {CONFIG} from './config.js'
 const BASE=import.meta.env.BASE_URL
 export const DATA_URL=BASE+'data/archy-status.json'
 export const API_URL=BASE+'api/status'
-export const SC={active:'#4ade80',waiting:'#fbbf24',scheduled:'#60a5fa',blocked:'#f87171',queued:'#9ca3af',done:'#6b7280'}
+export const SC={active:'#7bd88f',waiting:'#ffb347',scheduled:'#6cb4ff',blocked:'#ff6b5a',queued:'#cdb48c',done:'#a79a84'}
 export const LB={active:'En cours',waiting:'Attend '+CONFIG.boss,scheduled:'Programmé',blocked:'Bloqué',queued:'En file',done:'Terminé'}
 export const ORD={active:0,blocked:1,waiting:2,scheduled:3,queued:4,done:5}
 const TZ=CONFIG.timeZone,LOC=CONFIG.locale
@@ -31,8 +31,8 @@ export function useData(){
 }
 export function Toggle({view}){
   const go=v=>{location.hash=v==='map'?'':'#dash'}
-  const b=(v,t)=><button onClick={()=>go(v)} aria-pressed={view===v} className={view===v?'on':''} style={{border:0,padding:'6px 14px',borderRadius:99,font:'600 13px system-ui',cursor:'pointer',background:view===v?'#111827':'transparent',color:view===v?'#fff':'#6b7280'}}>{t}</button>
-  return <div role="group" aria-label="Vue" style={{display:'inline-flex',background:'#e5e7ebee',borderRadius:99,padding:3,pointerEvents:'auto'}}>{b('map','Map')}{b('dash','Dashboard')}</div>
+  const b=(v,t)=><button onClick={()=>go(v)} aria-pressed={view===v} className={view===v?'on':''}>{t}</button>
+  return <div role="group" aria-label="Vue" className="view-toggle">{b('map','Village')}{b('dash','Dashboard')}</div>
 }
 
 // ---- Actions de pilotage (annuler / important) : stockées via /api/actions, lues par Archy ----
@@ -57,13 +57,12 @@ export function ActionBar({t,compact}){
   if(t.status==='done')return null
   const st=taskAct(list,t.id)
   const send=async action=>{setBusy(true);setErr('');try{const r=await fetch(ACT_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({task:t.id,action})});if(!r.ok)throw new Error();await actLoad()}catch{setErr("Échec de l'envoi")}setBusy(false);setArm(false)}
-  const b={border:0,borderRadius:99,padding:compact?'4px 11px':'6px 13px',fontWeight:700,cursor:'pointer',font:'inherit',fontSize:12}
   const stop=e=>e.stopPropagation()
-  return <div onClick={stop} onPointerDown={stop} onKeyDown={stop} style={{display:'flex',gap:6,flexWrap:'wrap',alignItems:'center',marginTop:6}}>
-    <button disabled={busy} onClick={()=>send(st.important?'unimportant':'important')} aria-pressed={!!st.important} style={{...b,background:st.important?'#f59e0b':'#fde9b8',color:'#4a2f00'}}>{st.important?'★ Important':'☆ Important'}</button>
-    {st.cancel?<span style={{...b,background:st.cancel.ack?'#d1d5db':'#fecaca',color:'#7f1d1d',cursor:'default'}}>{st.cancel.ack?'✕ Annulation prise en compte':'✕ Annulation demandée'}</span>
-      :arm?<><button disabled={busy} onClick={()=>send('cancel')} style={{...b,background:'#dc2626',color:'#fff'}}>Confirmer l'annulation</button><button onClick={()=>setArm(false)} style={{...b,background:'#e5e7eb',color:'#374151'}}>Non</button></>
-      :<button disabled={busy} onClick={()=>setArm(true)} style={{...b,background:'#fee2e2',color:'#991b1b'}}>✕ Annuler</button>}
-    {st.important&&!st.important.ack&&<span style={{fontSize:11,opacity:.7}}>transmis à Archy</span>}
-    {err&&<span style={{fontSize:11,color:'#b91c1c'}}>{err}</span>}
+  return <div onClick={stop} onPointerDown={stop} onKeyDown={stop} className={'act-bar'+(compact?' compact':'')}>
+    <button disabled={busy} onClick={()=>send(st.important?'unimportant':'important')} aria-pressed={!!st.important} className={'act star'+(st.important?' on':'')}>{st.important?'★ Important':'☆ Important'}</button>
+    {st.cancel?<span className={'act cancelled'+(st.cancel.ack?' ack':'')}>{st.cancel.ack?'✕ Annulation prise en compte':'✕ Annulation demandée'}</span>
+      :arm?<><button disabled={busy} onClick={()=>send('cancel')} className="act danger">Confirmer l'annulation</button><button onClick={()=>setArm(false)} className="act">Non</button></>
+      :<button disabled={busy} onClick={()=>setArm(true)} className="act cancel">✕ Annuler</button>}
+    {st.important&&!st.important.ack&&<span className="act-note">transmis à Archy</span>}
+    {err&&<span className="act-err">{err}</span>}
   </div>}
